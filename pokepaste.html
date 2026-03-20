@@ -3,224 +3,409 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PokéCard — PokéPaste Importer</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>PokéCard — PokéPaste Import</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0a0b0f;--bg2:#111318;--bg3:#181b24;
-  --surface:#1e2130;--surface2:#252a3a;
-  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
-  --text:#eef0f8;--text2:#8a91b0;--text3:#555f80;
-  --accent:#e84343;--gold:#f5c842;--blue:#4f9eff;--green:#3ecf8e;
-  --radius:14px;
-  --font:'Outfit',sans-serif;--mono:'Space Mono',monospace;
+  --bg:#0d0d1a;--panel:#111128;--panel2:#1a1a38;--panel3:#222244;--inset:#080810;
+  --text:#e8e8f8;--text2:#9898c8;--text3:#5858a8;
+  --accent:#e8002a;--gold:#f5e642;--green:#00e878;--cyan:#00e8d8;--blue:#3050e8;--blue2:#6090ff;
+  --gb-shadow:#0a0a14;--gb-red:#e8002a;--gb-red2:#ff4455;
+  --font-px:'Press Start 2P',monospace;--font-vt:'VT323',monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
-  background-size:40px 40px}
+body{background:var(--bg);color:var(--text);font-family:var(--font-px);font-size:9px;
+  min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:none}
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 60% 40% at 10% 20%,rgba(232,67,67,.07) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 50% at 90% 80%,rgba(79,158,255,.05) 0%,transparent 60%)}
+  background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(48,80,232,.1) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 90%,rgba(232,0,42,.08) 0%,transparent 60%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,#111128 0%,#0d0d1a 100%)}
 
-/* ── Header (shared) ── */
-header{position:relative;z-index:10;border-bottom:1px solid var(--border);
-  background:rgba(10,11,15,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.hdr{max-width:1200px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;gap:16px}
-.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
-.logo-ball{width:32px;height:32px;border-radius:50%;
-  background:linear-gradient(160deg,var(--accent) 50%,white 50%);
-  position:relative;flex-shrink:0;box-shadow:0 0 18px rgba(232,67,67,.45);
-  animation:pglow 3s ease-in-out infinite}
-@keyframes pglow{0%,100%{box-shadow:0 0 18px rgba(232,67,67,.4)}50%{box-shadow:0 0 30px rgba(232,67,67,.7)}}
-.logo-ball::before{content:'';position:absolute;left:0;top:calc(50% - 1.5px);right:0;height:3px;background:rgba(0,0,0,.45)}
+/* ── Header ── */
+header{position:relative;z-index:100;background:var(--gb-red);border-bottom:4px solid #8a0018;
+  box-shadow:0 4px 0 var(--gb-shadow),0 6px 0 #3a0010;overflow:hidden}
+header::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 2px,transparent 2px,transparent 20px)}
+.hdr{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px;height:56px;
+  display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-ball{width:28px;height:28px;border-radius:50%;background:linear-gradient(160deg,white 50%,#e8002a 50%);
+  border:3px solid #333;position:relative;flex-shrink:0;box-shadow:2px 2px 0 #000,inset 1px 1px 0 rgba(255,255,255,.5)}
+.logo-ball::before{content:'';position:absolute;left:0;top:calc(50% - 1.5px);right:0;height:3px;background:#333}
 .logo-ball::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.4)}
-.logo-text{font-size:20px;font-weight:900;letter-spacing:-.5px;
-  background:linear-gradient(135deg,#fff 30%,var(--text2));-webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;background-clip:text}
-.logo-text b{color:var(--accent);-webkit-text-fill-color:var(--accent)}
-.hdr-sep{font-size:12px;color:var(--text3);font-weight:500;border-left:1px solid var(--border2);padding-left:16px}
+  width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #333}
+.logo-text{font-family:var(--font-px);font-size:13px;color:#fff;
+  text-shadow:2px 2px 0 rgba(0,0,0,.5);letter-spacing:1px}
+.logo-text b{color:var(--gold);text-shadow:2px 2px 0 #8a6000}
+.hdr-sep{font-size:7px;color:rgba(255,255,255,.6);border-left:3px solid rgba(255,255,255,.3);
+  padding-left:14px;font-family:var(--font-px)}
 .hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
-.btn-hdr{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;
-  font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;border:none;
-  transition:all .17s;text-decoration:none;white-space:nowrap;
-  background:transparent;color:var(--text2);border:1px solid var(--border)}
-.btn-hdr:hover{border-color:var(--border2);color:var(--text)}
 
-/* ── Main layout ── */
-.main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:36px 28px 80px}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;
+  font-family:var(--font-px);font-size:7px;cursor:pointer;border:none;
+  text-decoration:none;white-space:nowrap;letter-spacing:.5px;
+  position:relative;transition:transform .06s,box-shadow .06s}
+.btn:active{transform:translate(2px,2px)}
+.btn-red{background:var(--gb-red);color:#fff;border:3px solid #8a0018;
+  box-shadow:3px 3px 0 #5a0010,inset 1px 1px 0 rgba(255,255,255,.25);text-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.btn-red:hover{background:var(--gb-red2)}
+.btn-red:active{box-shadow:1px 1px 0 #5a0010}
+.btn-gold{background:var(--gold);color:#2a1a00;border:3px solid #a88000;
+  box-shadow:3px 3px 0 #604800,inset 1px 1px 0 rgba(255,255,255,.4)}
+.btn-gold:hover{background:#ffe060}
+.btn-gold:active{box-shadow:1px 1px 0 #604800}
+.btn-dark{background:var(--panel2);color:var(--text2);border:3px solid var(--text3);
+  box-shadow:3px 3px 0 var(--gb-shadow),inset 1px 1px 0 rgba(255,255,255,.07)}
+.btn-dark:hover{color:var(--text);border-color:var(--text2)}
+.btn-dark:active{box-shadow:1px 1px 0 var(--gb-shadow)}
+.btn-sm{padding:5px 10px;font-size:6px}
+.btn-full{width:100%;justify-content:center}
 
-/* ── Page title ── */
-.page-title{margin-bottom:32px}
-.page-title h1{font-size:28px;font-weight:900;letter-spacing:-.5px;margin-bottom:6px}
-.page-title h1 span{color:var(--gold)}
-.page-title p{font-size:14px;color:var(--text3);font-weight:500;line-height:1.6}
-.page-title a{color:var(--blue);text-decoration:none}
-.page-title a:hover{text-decoration:underline}
-
-/* ── Two column layout ── */
-.cols{display:grid;grid-template-columns:1fr 420px;gap:22px;align-items:start}
+/* ── Layout ── */
+.main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:28px 20px 80px}
+.page-title{margin-bottom:24px}
+.page-title h1{font-family:var(--font-px);font-size:14px;color:var(--gold);
+  text-shadow:3px 3px 0 rgba(0,0,0,.7),1px 1px 0 #8a6000;line-height:2;margin-bottom:8px}
+.page-title p{font-family:var(--font-px);font-size:7px;color:var(--text3);line-height:2.5}
+.page-title a{color:var(--cyan);text-decoration:none}
+.page-title a:hover{color:var(--gold)}
+.cols{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
 @media(max-width:900px){.cols{grid-template-columns:1fr}}
 
 /* ── Panel ── */
-.pnl{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.pnl-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--bg3)}
-.pnl-hd-ico{width:26px;height:26px;border-radius:7px;background:var(--surface);
-  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.pnl-hd h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2)}
+.pnl{background:var(--panel);border:4px solid var(--text3);
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.08),inset -2px -2px 0 rgba(0,0,0,.5),
+    4px 4px 0 var(--gb-shadow),6px 6px 0 rgba(0,0,0,.3);overflow:hidden}
+.pnl-hd{padding:10px 14px;border-bottom:3px solid var(--text3);display:flex;align-items:center;gap:8px;
+  background:linear-gradient(90deg,var(--panel3) 0%,var(--panel2) 100%);position:relative;overflow:hidden}
+.pnl-hd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gb-red)}
+.pnl-hd-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.pnl-hd h2{font-family:var(--font-px);font-size:8px;color:var(--gold);text-shadow:1px 1px 0 rgba(0,0,0,.6);letter-spacing:1px}
 .pnl-hd-right{margin-left:auto;display:flex;gap:6px;align-items:center}
-.pnl-body{padding:16px}
+.pnl-body{padding:14px}
+
+/* ── Tabs on paste panel ── */
+.ptabs{display:flex;gap:0;padding:10px 14px 0;background:var(--panel3);border-bottom:3px solid var(--text3)}
+.ptab{padding:7px 12px;font-family:var(--font-px);font-size:6px;cursor:pointer;color:var(--text3);
+  background:var(--panel2);border:2px solid var(--text3);border-bottom:none;
+  transition:all .1s;margin-right:2px;margin-bottom:-3px;letter-spacing:.5px}
+.ptab.on{background:var(--panel3);color:var(--gold);border-color:var(--gold);z-index:1}
+.ptab:hover:not(.on){color:var(--text2);border-color:var(--text2)}
+.ptab-body{display:none;padding:14px}
+.ptab-body.on{display:block}
 
 /* ── Textarea ── */
-.paste-area{
-  width:100%;min-height:340px;
-  background:var(--surface);border:1px solid var(--border2);border-radius:11px;
-  color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.7;
-  padding:14px 16px;outline:none;resize:vertical;
-  transition:border-color .2s,box-shadow .2s;
-}
-.paste-area:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,66,.09)}
-.paste-area::placeholder{color:var(--text3);font-family:var(--mono)}
+.paste-area{width:100%;min-height:300px;
+  background:var(--inset);border:3px solid var(--text3);
+  box-shadow:inset 2px 2px 0 rgba(0,0,0,.7);
+  color:var(--green);font-family:var(--font-vt);font-size:16px;line-height:1.6;
+  padding:12px 14px;outline:none;resize:vertical;
+  caret-color:var(--green);transition:border-color .15s}
+.paste-area:focus{border-color:var(--gold);box-shadow:inset 2px 2px 0 rgba(0,0,0,.7),0 0 0 2px rgba(245,230,66,.15)}
+.paste-area::placeholder{color:var(--text3);font-family:var(--font-vt)}
 
-/* ── Buttons ── */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:10px;
-  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;border:none;
-  transition:all .17s;text-decoration:none;white-space:nowrap}
-.btn-p{background:linear-gradient(135deg,var(--accent),#c23030);color:#fff;box-shadow:0 4px 20px rgba(232,67,67,.3)}
-.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(232,67,67,.5)}
-.btn-p:active{transform:translateY(0)}
-.btn-g{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
-.btn-g:hover{border-color:var(--border2);color:var(--text)}
-.btn-gold{background:linear-gradient(135deg,var(--gold),#d4a800);color:#000;box-shadow:0 4px 20px rgba(245,200,66,.25)}
-.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(245,200,66,.4)}
-.btn-sm{padding:7px 12px;font-size:12px}
-.btn-full{width:100%;justify-content:center}
+/* ── Inputs ── */
+.fin{flex:1;background:var(--inset);border:3px solid var(--text3);
+  box-shadow:inset 2px 2px 0 rgba(0,0,0,.7);color:var(--green);
+  font-family:var(--font-px);font-size:7px;padding:8px 10px;outline:none;
+  caret-color:var(--green);transition:border-color .15s}
+.fin:focus{border-color:var(--gold)}
+.fin::placeholder{color:var(--text3)}
+.url-row{display:flex;gap:6px}
 
-/* ── Format helper ── */
-.format-box{background:var(--surface);border:1px solid var(--border);border-radius:11px;
-  padding:14px 16px;font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--text2)}
+/* ── Status bar ── */
+.status-bar{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;
+  font-family:var(--font-px);font-size:7px;line-height:1.8;margin-bottom:10px;
+  border:3px solid;box-shadow:2px 2px 0 var(--gb-shadow)}
+.status-bar.success{background:rgba(0,232,120,.08);border-color:var(--green);color:var(--green)}
+.status-bar.error{background:rgba(232,0,42,.08);border-color:var(--accent);color:var(--accent)}
+.status-bar.info{background:rgba(48,80,232,.08);border-color:var(--blue2);color:var(--blue2)}
+.status-bar.warning{background:rgba(245,230,66,.08);border-color:var(--gold);color:var(--gold)}
+
+/* ── Preview cards ── */
+.preview-grid{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.pmon-card{display:flex;align-items:center;gap:11px;padding:10px 12px;
+  background:var(--panel2);border:3px solid var(--text3);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.05),2px 2px 0 var(--gb-shadow);
+  position:relative;overflow:hidden}
+.pmon-card.valid{border-color:#3a7a4a}
+.pmon-card.invalid{border-color:#7a2a2a}
+.pmon-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.pmon-card.valid::before{background:var(--green)}
+.pmon-card.invalid::before{background:var(--accent)}
+.pmon-spr{width:52px;height:52px;flex-shrink:0;image-rendering:pixelated;
+  filter:drop-shadow(2px 2px 0 rgba(0,0,0,.9));
+  background:var(--inset);border:2px solid var(--text3)}
+.pmon-info{flex:1;min-width:0}
+.pmon-name{font-family:var(--font-px);font-size:9px;text-transform:uppercase;
+  margin-bottom:4px;text-shadow:1px 1px 0 rgba(0,0,0,.7)}
+.pmon-nick{font-family:var(--font-vt);font-size:13px;color:var(--text3);font-style:italic;margin-bottom:3px}
+.pmon-meta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.pmon-detail{font-family:var(--font-px);font-size:6px;color:var(--text3);line-height:2}
+.pmon-detail span{color:var(--text2)}
+.pmon-moves{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.pmon-move{font-family:var(--font-px);font-size:6px;padding:2px 6px;
+  background:rgba(48,80,232,.15);color:var(--blue2);border:1px solid rgba(96,144,255,.3)}
+.pmon-badge{position:absolute;top:8px;right:10px;font-family:var(--font-px);font-size:6px;
+  padding:2px 6px;border:2px solid;box-shadow:1px 1px 0 var(--gb-shadow)}
+.badge-ok{background:rgba(0,232,120,.1);border-color:var(--green);color:var(--green)}
+.badge-err{background:rgba(232,0,42,.1);border-color:var(--accent);color:var(--accent)}
+.tpill{display:inline-flex;align-items:center;gap:2px;padding:1px 5px 1px 2px;
+  font-family:var(--font-px);font-size:6px;text-transform:uppercase;
+  color:#fff;border:2px solid rgba(0,0,0,.5);box-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.tpill img{width:10px;height:10px;image-rendering:pixelated}
+
+/* ── Steps ── */
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:10px;align-items:flex-start}
+.step-num{width:22px;height:22px;background:var(--gb-red);border:2px solid #8a0018;
+  box-shadow:2px 2px 0 var(--gb-shadow);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-px);font-size:8px;color:#fff;flex-shrink:0;margin-top:2px}
+.step-content{flex:1}
+.step-title{font-family:var(--font-px);font-size:8px;color:var(--gold);margin-bottom:4px;
+  text-shadow:1px 1px 0 rgba(0,0,0,.6)}
+.step-desc{font-family:var(--font-px);font-size:7px;color:var(--text3);line-height:2.2}
+.step-desc a{color:var(--cyan);text-decoration:none}
+.step-desc a:hover{color:var(--gold)}
+
+/* ── Format box ── */
+.format-box{background:var(--inset);border:3px solid var(--text3);
+  box-shadow:inset 2px 2px 0 rgba(0,0,0,.7);
+  padding:12px 14px;font-family:var(--font-vt);font-size:15px;line-height:1.7;color:var(--text2)}
 .format-line{display:block;white-space:pre}
 .fmt-name{color:var(--gold)}
 .fmt-label{color:var(--text3)}
 .fmt-val{color:var(--green)}
-.fmt-move{color:var(--blue)}
-.fmt-comment{color:var(--text3);font-style:italic}
+.fmt-move{color:var(--blue2)}
 
-/* ── Preview cards ── */
-.preview-grid{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.pmon-card{
-  display:flex;align-items:center;gap:13px;
-  background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  padding:12px 14px;position:relative;overflow:hidden;
-  transition:border-color .2s;
-}
-.pmon-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
-.pmon-card.valid{border-color:rgba(62,207,142,.2)}
-.pmon-card.valid::before{background:var(--green)}
-.pmon-card.invalid{border-color:rgba(232,67,67,.2)}
-.pmon-card.invalid::before{background:var(--accent)}
-.pmon-spr{width:54px;height:54px;flex-shrink:0;image-rendering:pixelated;
-  filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));background:var(--bg3);border-radius:9px}
-.pmon-info{flex:1;min-width:0}
-.pmon-name{font-size:14px;font-weight:800;text-transform:capitalize;margin-bottom:3px}
-.pmon-nick{font-size:11px;color:var(--text3);font-style:italic;margin-bottom:3px}
-.pmon-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
-.pmon-detail{font-size:11px;color:var(--text3);font-weight:600}
-.pmon-detail span{color:var(--text2)}
-.pmon-moves{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
-.pmon-move{font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;
-  background:rgba(79,158,255,.12);color:var(--blue);border:1px solid rgba(79,158,255,.2)}
-.pmon-badge{position:absolute;top:10px;right:12px;font-size:9px;font-weight:700;
-  padding:2px 7px;border-radius:20px;font-family:var(--mono)}
-.badge-ok{background:rgba(62,207,142,.15);color:var(--green)}
-.badge-err{background:rgba(232,67,67,.15);color:var(--accent)}
-.tpill{display:inline-flex;align-items:center;gap:2px;padding:1px 6px 1px 3px;border-radius:20px;
-  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
-  color:rgba(255,255,255,.9);line-height:16px}
-.tpill img{width:10px;height:10px;image-rendering:pixelated}
+/* ── Sample items ── */
+.sample-grid{display:flex;flex-direction:column;gap:5px}
+.sample-item{display:flex;align-items:center;gap:10px;padding:8px 10px;
+  background:var(--panel2);border:2px solid var(--text3);
+  box-shadow:2px 2px 0 var(--gb-shadow);cursor:pointer;transition:all .1s}
+.sample-item:hover{border-color:var(--gold);transform:translate(-1px,-1px);
+  box-shadow:3px 3px 0 var(--gb-shadow)}
+.sample-item:active{transform:translate(1px,1px);box-shadow:none}
+.sample-item-name{font-family:var(--font-px);font-size:7px;flex:1;color:var(--text)}
+.sample-item-desc{font-family:var(--font-px);font-size:6px;color:var(--text3)}
+.sample-arrow{font-size:10px;color:transparent;font-family:var(--font-px);transition:color .1s}
+.sample-item:hover .sample-arrow{color:var(--gold)}
 
-/* ── Status bar ── */
-.status-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;
-  border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:700}
-.status-bar.success{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.2);color:var(--green)}
-.status-bar.error{background:rgba(232,67,67,.1);border:1px solid rgba(232,67,67,.2);color:var(--accent)}
-.status-bar.info{background:rgba(79,158,255,.08);border:1px solid rgba(79,158,255,.15);color:var(--blue)}
-.status-bar.warning{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:var(--gold)}
+/* ── Success ── */
+.import-success{display:none;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:36px 20px;gap:12px}
+.import-success.show{display:flex}
+.success-ball{font-size:48px;animation:bounce .5s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.success-title{font-family:var(--font-px);font-size:12px;color:var(--green);
+  text-shadow:2px 2px 0 rgba(0,0,0,.7);line-height:2}
+.success-sub{font-family:var(--font-px);font-size:7px;color:var(--text3);
+  max-width:280px;line-height:2.2}
 
-/* ── Steps ── */
-.steps{display:flex;flex-direction:column;gap:12px}
-.step{display:flex;gap:12px;align-items:flex-start}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--surface2);
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:1px}
-.step-content{flex:1}
-.step-title{font-size:13px;font-weight:700;margin-bottom:3px}
-.step-desc{font-size:12px;color:var(--text3);line-height:1.5}
-.step-desc a{color:var(--blue);text-decoration:none}
-.step-desc a:hover{text-decoration:underline}
+/* ── Sep ── */
+.sep{height:3px;background:var(--text3);margin:12px 0;box-shadow:0 1px 0 var(--gb-shadow)}
 
-/* ── Tabs on paste panel ── */
-.ptabs{display:flex;gap:3px;padding:10px 16px 0;background:var(--bg3);border-bottom:1px solid var(--border)}
-.ptab{padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);
-  border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px}
-.ptab.on{color:var(--gold);border-bottom-color:var(--gold)}
-.ptab:hover:not(.on){color:var(--text2)}
-.ptab-body{display:none;padding:16px}
-.ptab-body.on{display:block}
+/* ── kbd ── */
+kbd{background:var(--panel3);border:2px solid var(--text3);
+  box-shadow:2px 2px 0 var(--gb-shadow);font-family:var(--font-px);
+  font-size:6px;padding:1px 5px;color:var(--text2)}
 
 /* ── Spinner ── */
-.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border2);
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--text3);
   border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 
 /* ── Toast ── */
-.toast{position:fixed;bottom:26px;right:26px;z-index:9999;background:var(--surface2);color:var(--text);
-  padding:11px 17px;border-radius:12px;font-size:13px;font-weight:700;
-  box-shadow:0 8px 40px rgba(0,0,0,.6);border-left:3px solid var(--gold);
-  transform:translateY(18px);opacity:0;transition:all .26s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--panel3);color:var(--gold);
+  padding:10px 16px;font-family:var(--font-px);font-size:7px;letter-spacing:.5px;
+  border:3px solid var(--gold);box-shadow:4px 4px 0 var(--gb-shadow);
+  transform:translateY(20px);opacity:0;transition:all .2s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
 .toast.on{transform:translateY(0);opacity:1}
 
-/* ── Sep ── */
-.sep{height:1px;background:var(--border);margin:14px 0}
-
 /* ── Scrollbar ── */
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--inset);border:2px solid var(--text3)}
+::-webkit-scrollbar-thumb{background:var(--text3);border:1px solid var(--gb-shadow)}
+::-webkit-scrollbar-thumb:hover{background:var(--text2)}
 
-/* ── Import success overlay ── */
-.import-success{
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:40px 20px;gap:14px;
+/* ═══════════════════════════════════════════
+   THEMES — mirrors index.html (data-theme on <html>)
+═══════════════════════════════════════════ */
+
+/* ── GAME BOY GREEN ── */
+[data-theme="gameboy"] {
+  --bg:#0a1a0a;--panel:#0d200d;--panel2:#142814;--panel3:#1c341c;--inset:#060e06;
+  --text:#c8f0a0;--text2:#8ec07c;--text3:#4a7c42;
+  --accent:#007800;--gold:#c8f0a0;--green:#c8f0a0;--cyan:#a0e8a0;
+  --gb-red:#005a00;--gb-red2:#007800;--gb-shadow:#020a02;
 }
-.import-success.show{display:flex}
-.success-ball{font-size:52px;animation:bounce .6s ease}
-@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-.success-title{font-size:20px;font-weight:900}
-.success-sub{font-size:13px;color:var(--text3);max-width:320px;line-height:1.6}
+[data-theme="gameboy"] header{background:#005a00;border-bottom-color:#003a00;box-shadow:0 4px 0 #020a02,0 6px 0 #011001}
+[data-theme="gameboy"] body::after{background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(0,120,0,.15) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 80% 90%,rgba(0,80,0,.12) 0%,transparent 60%),radial-gradient(ellipse 100% 100% at 50% 50%,#0d200d 0%,#0a1a0a 100%)}
+[data-theme="gameboy"] .logo-ball{background:linear-gradient(160deg,#c8f0a0 50%,#005a00 50%);box-shadow:2px 2px 0 #020a02}
+[data-theme="gameboy"] .logo-text{color:#c8f0a0}
+[data-theme="gameboy"] .logo-text b{color:#c8f0a0;text-shadow:2px 2px 0 #004400}
+[data-theme="gameboy"] .btn-red{background:#005a00;border-color:#003a00;box-shadow:3px 3px 0 #020a02}
+[data-theme="gameboy"] .btn-red:hover{background:#007800}
+[data-theme="gameboy"] .btn-dark{background:#142814;border-color:#4a7c42;color:#8ec07c}
+[data-theme="gameboy"] .page-title h1{color:#c8f0a0;text-shadow:3px 3px 0 rgba(0,0,0,.7)}
+[data-theme="gameboy"] .paste-area{color:#c8f0a0;caret-color:#c8f0a0;border-color:#4a7c42}
+[data-theme="gameboy"] .fin{color:#c8f0a0;caret-color:#c8f0a0}
+[data-theme="gameboy"] .step-num{background:#005a00;border-color:#003a00}
+[data-theme="gameboy"] .pnl-hd::before{background:#005a00}
 
-/* ── Sample teams ── */
-.sample-grid{display:flex;flex-direction:column;gap:6px}
-.sample-item{display:flex;align-items:center;gap:10px;padding:9px 12px;
-  background:var(--surface);border:1px solid var(--border);border-radius:9px;
-  cursor:pointer;transition:all .15s}
-.sample-item:hover{border-color:var(--border2);background:var(--surface2)}
-.sample-item-name{font-size:13px;font-weight:700;flex:1}
-.sample-item-desc{font-size:11px;color:var(--text3)}
-.sample-load{font-size:11px;font-weight:700;color:var(--gold);opacity:0;transition:opacity .15s}
-.sample-item:hover .sample-load{opacity:1}
+/* ── POKEMON GOLD ── */
+[data-theme="gold"] {
+  --bg:#1a1200;--panel:#241800;--panel2:#302000;--panel3:#3e2a00;--inset:#100c00;
+  --text:#f8e8b0;--text2:#d4b860;--text3:#8a6a18;
+  --accent:#d44000;--gold:#f8d000;--green:#50d050;--cyan:#f8e840;
+  --gb-red:#c84800;--gb-red2:#e05800;--gb-shadow:#0a0800;
+}
+[data-theme="gold"] header{background:linear-gradient(90deg,#c84800,#d45000,#c84800);border-bottom-color:#803000;box-shadow:0 4px 0 #0a0800,0 6px 0 #200e00}
+[data-theme="gold"] body::after{background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(200,120,0,.15) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 80% 90%,rgba(248,200,0,.08) 0%,transparent 60%),radial-gradient(ellipse 100% 100% at 50% 50%,#241800 0%,#1a1200 100%)}
+[data-theme="gold"] .logo-ball{background:linear-gradient(160deg,#f8d000 50%,#c84800 50%);border-color:#5a3000;box-shadow:2px 2px 0 #0a0800}
+[data-theme="gold"] .logo-text{color:#f8e8b0}
+[data-theme="gold"] .logo-text b{color:#f8d000;text-shadow:2px 2px 0 #604000}
+[data-theme="gold"] .btn-red{background:#c84800;border-color:#803000;box-shadow:3px 3px 0 #0a0800}
+[data-theme="gold"] .btn-red:hover{background:#e05800}
+[data-theme="gold"] .btn-dark{background:#302000;border-color:#8a6a18;color:#d4b860}
+[data-theme="gold"] .btn-gold{background:#f8d000;border-color:#a08000;box-shadow:3px 3px 0 #0a0800;color:#2a1800}
+[data-theme="gold"] .page-title h1{color:#f8d000}
+[data-theme="gold"] .paste-area{color:#f8e8b0;caret-color:#f8d000;border-color:#8a6a18}
+[data-theme="gold"] .fin{color:#f8e8b0;caret-color:#f8d000}
+[data-theme="gold"] .step-num{background:#c84800;border-color:#803000}
+[data-theme="gold"] .pnl-hd::before{background:#c84800}
+[data-theme="gold"] .ptab.on{color:#f8d000;border-color:#f8d000}
+[data-theme="gold"] .status-bar.success{border-color:#50d050;color:#50d050}
 
-/* ── URL paste ── */
-.url-row{display:flex;gap:8px}
-.fin{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:9px;
-  color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;
-  padding:10px 13px;outline:none;transition:border-color .2s}
-.fin:focus{border-color:var(--gold)}
-.fin::placeholder{color:var(--text3)}
+/* ── MODERN DARK ── */
+[data-theme="modern"] {
+  --bg:#0e0e16;--panel:#16161f;--panel2:#1e1e2a;--panel3:#252535;--inset:#0a0a12;
+  --text:#eeeef8;--text2:#8888b8;--text3:#44446a;
+  --accent:#7c5cfc;--gold:#a78bfa;--green:#34d399;--cyan:#22d3ee;
+  --gb-red:#7c5cfc;--gb-red2:#9d7ffe;--gb-shadow:rgba(0,0,0,.7);
+}
+[data-theme="modern"] *{font-family:'Outfit',sans-serif !important;letter-spacing:0 !important}
+[data-theme="modern"] body{font-size:13px;cursor:auto}
+[data-theme="modern"] body::after{background:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(124,92,252,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 80%,rgba(34,211,238,.07) 0%,transparent 60%),#0e0e16}
+[data-theme="modern"] header{background:rgba(14,14,22,.9);border-bottom:1px solid rgba(124,92,252,.25);box-shadow:0 1px 24px rgba(0,0,0,.4);backdrop-filter:blur(16px)}
+[data-theme="modern"] header::before{display:none}
+[data-theme="modern"] .logo-ball{background:linear-gradient(135deg,#7c5cfc,#22d3ee);border:none;box-shadow:0 0 16px rgba(124,92,252,.5)}
+[data-theme="modern"] .logo-ball::before{background:rgba(255,255,255,.3)}
+[data-theme="modern"] .logo-ball::after{background:#fff;border-color:rgba(255,255,255,.4)}
+[data-theme="modern"] .logo-text{font-size:18px;font-weight:800;background:linear-gradient(135deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+[data-theme="modern"] .logo-text b{-webkit-text-fill-color:transparent}
+[data-theme="modern"] .hdr-sep{font-size:12px;color:rgba(255,255,255,.3);border-left-color:rgba(255,255,255,.1)}
+[data-theme="modern"] .pnl{background:rgba(22,22,31,.8);border:1px solid rgba(124,92,252,.18);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}
+[data-theme="modern"] .pnl-hd{background:rgba(30,30,42,.6);border-bottom:1px solid rgba(124,92,252,.15);border-radius:14px 14px 0 0}
+[data-theme="modern"] .pnl-hd::before{display:none}
+[data-theme="modern"] .pnl-hd h2{font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(167,139,250,.8);text-shadow:none}
+[data-theme="modern"] .ptabs{background:rgba(22,22,31,.6);border-bottom:1px solid rgba(124,92,252,.15)}
+[data-theme="modern"] .ptab{background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;color:rgba(255,255,255,.3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:8px 14px}
+[data-theme="modern"] .ptab.on{background:transparent;border-bottom-color:#a78bfa;color:#a78bfa}
+[data-theme="modern"] .ptab:hover:not(.on){color:rgba(255,255,255,.5)}
+[data-theme="modern"] .paste-area{background:rgba(14,14,22,.8);border:1px solid rgba(124,92,252,.2);border-radius:12px;color:#eeeef8;caret-color:#a78bfa;box-shadow:none;font-family:'Outfit',sans-serif !important;font-size:13px}
+[data-theme="modern"] .paste-area:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(124,92,252,.12)}
+[data-theme="modern"] .fin{background:rgba(14,14,22,.8);border:1px solid rgba(124,92,252,.2);border-radius:10px;color:#eeeef8;caret-color:#a78bfa;box-shadow:none;font-size:13px;padding:9px 12px}
+[data-theme="modern"] .fin:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(124,92,252,.12)}
+[data-theme="modern"] .btn{border-radius:10px}
+[data-theme="modern"] .btn-red{background:linear-gradient(135deg,#7c5cfc,#5a3dd8);border:none;box-shadow:0 4px 16px rgba(124,92,252,.35);text-shadow:none}
+[data-theme="modern"] .btn-red:hover{background:linear-gradient(135deg,#9d7ffe,#7c5cfc);transform:translateY(-1px)}
+[data-theme="modern"] .btn-red:active{transform:translate(0,0)}
+[data-theme="modern"] .btn-dark{background:rgba(30,30,42,.8);border:1px solid rgba(124,92,252,.2);color:rgba(255,255,255,.5);box-shadow:none}
+[data-theme="modern"] .btn-dark:hover{border-color:rgba(167,139,250,.4);color:rgba(255,255,255,.8)}
+[data-theme="modern"] .btn-dark:active{transform:translate(0,0)}
+[data-theme="modern"] .btn-gold{background:linear-gradient(135deg,#a78bfa,#7c5cfc);border:none;box-shadow:0 4px 16px rgba(124,92,252,.35);color:#fff;text-shadow:none}
+[data-theme="modern"] .step-num{background:#7c5cfc;border:none;border-radius:8px;box-shadow:0 2px 8px rgba(124,92,252,.4)}
+[data-theme="modern"] .page-title h1{color:#a78bfa;text-shadow:none;font-family:'Outfit',sans-serif !important;font-size:28px;font-weight:900;letter-spacing:-1px}
+[data-theme="modern"] .format-box{background:rgba(14,14,22,.8);border:1px solid rgba(124,92,252,.2);border-radius:10px;box-shadow:none}
+[data-theme="modern"] .sample-item{background:rgba(30,30,42,.6);border:1px solid rgba(124,92,252,.12);border-radius:10px;box-shadow:none}
+[data-theme="modern"] .sample-item:hover{border-color:rgba(167,139,250,.4);transform:translateX(2px);box-shadow:0 4px 16px rgba(124,92,252,.15)}
+[data-theme="modern"] .sample-item:active{transform:translate(0,0)}
+[data-theme="modern"] .pmon-card{background:rgba(30,30,42,.6);border:1px solid rgba(124,92,252,.15);border-radius:12px;box-shadow:none}
+[data-theme="modern"] .pmon-card.valid{border-color:rgba(52,211,153,.2)}
+[data-theme="modern"] .pmon-card.invalid{border-color:rgba(252,92,124,.2)}
+[data-theme="modern"] .status-bar{border-radius:10px}
+[data-theme="modern"] .toast{background:rgba(37,37,53,.95);border:1px solid rgba(167,139,250,.4);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);color:#a78bfa}
+[data-theme="modern"] ::-webkit-scrollbar{width:6px}
+[data-theme="modern"] ::-webkit-scrollbar-track{background:transparent;border:none}
+[data-theme="modern"] ::-webkit-scrollbar-thumb{background:rgba(124,92,252,.3);border-radius:3px}
+
+/* ── NEON CYBER ── */
+[data-theme="cyber"] {
+  --bg:#06000e;--panel:#0e0018;--panel2:#160026;--panel3:#200036;--inset:#030008;
+  --text:#f0e8ff;--text2:#cc88ff;--text3:#7700cc;
+  --accent:#ff00aa;--gold:#00ffcc;--green:#00ffaa;--cyan:#00eeff;
+  --gb-red:#ff00aa;--gb-red2:#ff44cc;--gb-shadow:#020006;
+}
+[data-theme="cyber"] body::after{background:radial-gradient(ellipse 60% 40% at 15% 20%,rgba(255,0,170,.1) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 80%,rgba(0,238,255,.08) 0%,transparent 60%),#06000e}
+[data-theme="cyber"] header{background:#0e0018;border-bottom:2px solid #ff00aa;box-shadow:0 2px 0 #7700cc,0 0 24px rgba(255,0,170,.3)}
+[data-theme="cyber"] header::before{background:repeating-linear-gradient(90deg,rgba(255,0,170,.05) 0px,rgba(255,0,170,.05) 1px,transparent 1px,transparent 16px)}
+[data-theme="cyber"] .logo-ball{background:linear-gradient(160deg,#00ffcc 50%,#ff00aa 50%);border-color:#ff00aa;box-shadow:0 0 12px #ff00aa,2px 2px 0 #020006}
+[data-theme="cyber"] .logo-text{color:#f0e8ff;text-shadow:0 0 10px rgba(255,0,170,.6)}
+[data-theme="cyber"] .logo-text b{color:#00ffcc;-webkit-text-fill-color:#00ffcc;text-shadow:0 0 10px rgba(0,255,204,.8)}
+[data-theme="cyber"] .pnl{background:#0e0018;border:2px solid #7700cc;box-shadow:inset 0 0 16px rgba(119,0,204,.1),4px 4px 0 #020006}
+[data-theme="cyber"] .pnl-hd{background:linear-gradient(90deg,#160026,#0e0018);border-bottom:2px solid #7700cc}
+[data-theme="cyber"] .pnl-hd::before{background:#ff00aa;box-shadow:0 0 8px #ff00aa}
+[data-theme="cyber"] .pnl-hd h2{color:#00ffcc;text-shadow:0 0 8px rgba(0,255,204,.6)}
+[data-theme="cyber"] .ptabs{background:#160026;border-bottom:2px solid #7700cc}
+[data-theme="cyber"] .ptab{background:#0e0018;border-color:#330055;color:#7700cc}
+[data-theme="cyber"] .ptab.on{background:#160026;color:#00ffcc;border-color:#00ffcc;text-shadow:0 0 8px rgba(0,255,204,.5)}
+[data-theme="cyber"] .paste-area{background:#030008;border-color:#7700cc;color:#f0e8ff;caret-color:#00ffcc;box-shadow:inset 1px 1px 0 rgba(0,0,0,.9)}
+[data-theme="cyber"] .paste-area:focus{border-color:#ff00aa;box-shadow:inset 1px 1px 0 rgba(0,0,0,.9),0 0 12px rgba(255,0,170,.15)}
+[data-theme="cyber"] .fin{background:#030008;border-color:#7700cc;color:#f0e8ff;caret-color:#00ffcc;box-shadow:inset 1px 1px 0 rgba(0,0,0,.9)}
+[data-theme="cyber"] .fin:focus{border-color:#ff00aa}
+[data-theme="cyber"] .btn-red{background:#1a0030;color:#ff00aa;border-color:#ff00aa;box-shadow:3px 3px 0 #020006,0 0 8px rgba(255,0,170,.2)}
+[data-theme="cyber"] .btn-red:hover{background:#260040;box-shadow:3px 3px 0 #020006,0 0 16px rgba(255,0,170,.4)}
+[data-theme="cyber"] .btn-red:active{box-shadow:1px 1px 0 #020006}
+[data-theme="cyber"] .btn-dark{background:#0e0018;color:#cc88ff;border-color:#7700cc;box-shadow:3px 3px 0 #020006}
+[data-theme="cyber"] .btn-gold{background:#001a18;color:#00ffcc;border-color:#00ffcc;box-shadow:3px 3px 0 #020006,0 0 8px rgba(0,255,204,.2)}
+[data-theme="cyber"] .step-num{background:#ff00aa;border-color:#cc0080;box-shadow:2px 2px 0 #020006,0 0 8px rgba(255,0,170,.4)}
+[data-theme="cyber"] .page-title h1{color:#00ffcc;text-shadow:0 0 16px rgba(0,255,204,.5)}
+[data-theme="cyber"] .page-title a{color:#ff00aa}
+[data-theme="cyber"] .format-box{background:#030008;border-color:#330055}
+[data-theme="cyber"] .sample-item{background:#0e0018;border-color:#330055}
+[data-theme="cyber"] .sample-item:hover{border-color:#ff00aa;box-shadow:2px 2px 0 #020006,0 0 12px rgba(255,0,170,.2)}
+[data-theme="cyber"] .pmon-card{background:#0e0018;border-color:#330055}
+[data-theme="cyber"] .pmon-card.valid{border-color:#1a4a30}
+[data-theme="cyber"] .pmon-card.invalid{border-color:#4a0030}
+[data-theme="cyber"] .status-bar.success{border-color:#00ffaa;color:#00ffaa}
+[data-theme="cyber"] .status-bar.error{border-color:#ff00aa;color:#ff00aa}
+[data-theme="cyber"] .status-bar.info{border-color:#00eeff;color:#00eeff}
+[data-theme="cyber"] .status-bar.warning{border-color:#00ffcc;color:#00ffcc}
+[data-theme="cyber"] .toast{background:#160026;border-color:#00ffcc;color:#00ffcc;text-shadow:0 0 8px rgba(0,255,204,.6);box-shadow:4px 4px 0 #020006,0 0 12px rgba(0,255,204,.2)}
+
+/* ── POKEMON SILVER ── */
+[data-theme="silver"] {
+  --bg:#08101a;--panel:#0e1c2e;--panel2:#142438;--panel3:#1c3048;--inset:#040c14;
+  --text:#d8eeff;--text2:#7aaad8;--text3:#2a5880;
+  --accent:#5088cc;--gold:#88ccff;--green:#44eecc;--cyan:#88ddff;
+  --gb-red:#5088cc;--gb-red2:#70aaee;--gb-shadow:#020810;
+}
+[data-theme="silver"] body::after{background:radial-gradient(ellipse 70% 40% at 20% 10%,rgba(80,136,204,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 80%,rgba(136,204,255,.06) 0%,transparent 60%),radial-gradient(100% 100% at 50% 50%,#0e1c2e 0%,#08101a 100%)}
+[data-theme="silver"] header{background:linear-gradient(90deg,#0e1c2e,#162840,#0e1c2e);border-bottom:4px solid #2a5880;box-shadow:0 4px 0 #020810,0 6px 0 #081420}
+[data-theme="silver"] .logo-ball{background:linear-gradient(160deg,#d8eeff 50%,#5088cc 50%);border-color:#2a5880;box-shadow:2px 2px 0 #020810}
+[data-theme="silver"] .logo-text{color:#d8eeff}
+[data-theme="silver"] .logo-text b{color:#88ccff;-webkit-text-fill-color:#88ccff;text-shadow:2px 2px 0 #1a4070}
+[data-theme="silver"] .pnl-hd::before{background:#5088cc}
+[data-theme="silver"] .btn-red{background:#5088cc;border-color:#2a5880;box-shadow:3px 3px 0 #020810}
+[data-theme="silver"] .btn-red:hover{background:#70aaee}
+[data-theme="silver"] .btn-red:active{box-shadow:1px 1px 0 #020810}
+[data-theme="silver"] .btn-dark{background:#142438;border-color:#2a5880;color:#7aaad8}
+[data-theme="silver"] .btn-gold{background:#5088cc;border-color:#2a5880;color:#d8eeff;box-shadow:3px 3px 0 #020810}
+[data-theme="silver"] .ptab.on{color:#88ccff;border-color:#88ccff}
+[data-theme="silver"] .paste-area{color:#d8eeff;caret-color:#88ccff;border-color:#2a5880;box-shadow:inset 2px 2px 0 rgba(0,0,0,.7)}
+[data-theme="silver"] .paste-area:focus{border-color:#88ccff}
+[data-theme="silver"] .fin{color:#d8eeff;caret-color:#88ccff;border-color:#2a5880;box-shadow:inset 2px 2px 0 rgba(0,0,0,.7)}
+[data-theme="silver"] .fin:focus{border-color:#88ccff}
+[data-theme="silver"] .step-num{background:#5088cc;border-color:#2a5880}
+[data-theme="silver"] .page-title h1{color:#88ccff}
+[data-theme="silver"] .page-title a{color:#88ccff}
+[data-theme="silver"] .toast{border-color:#88ccff;color:#88ccff}
+[data-theme="silver"] .status-bar.success{border-color:#44eecc;color:#44eecc}
+
 </style>
 </head>
 <body>
@@ -231,9 +416,9 @@ header{position:relative;z-index:10;border-bottom:1px solid var(--border);
       <div class="logo-ball"></div>
       <span class="logo-text">Poké<b>Card</b></span>
     </a>
-    <span class="hdr-sep">PokéPaste Importer</span>
+    <span class="hdr-sep">POKEPASTE IMPORTER</span>
     <div class="hdr-right">
-      <a class="btn-hdr" href="index.html">← Back to Card Builder</a>
+      <a class="btn btn-dark btn-sm" href="index.html" style="text-decoration:none">◀ BACK</a>
     </div>
   </div>
 </header>
@@ -241,32 +426,30 @@ header{position:relative;z-index:10;border-bottom:1px solid var(--border);
 <div class="main">
 
   <div class="page-title">
-    <h1>Import from <span>Pokémon Showdown</span></h1>
-    <p>
-      Paste your team export from <a href="https://play.pokemonshowdown.com/teambuilder" target="_blank">Pokémon Showdown Teambuilder</a>
-      or any <a href="https://pokepast.es" target="_blank">PokéPaste</a> link — we'll parse it instantly and load it into your card.
+    <h1>IMPORT FROM<br>SHOWDOWN</h1>
+    <p>PASTE YOUR EXPORT FROM
+      <a href="https://play.pokemonshowdown.com/teambuilder" target="_blank">POKEMON SHOWDOWN TEAMBUILDER</a>
+      OR A <a href="https://pokepast.es" target="_blank">POKEPASTE LINK</a>
     </p>
   </div>
 
   <div class="cols">
 
-    <!-- ═══ LEFT: Paste input ═══ -->
+    <!-- ═══ LEFT ═══ -->
     <div>
-      <div class="pnl" style="margin-bottom:16px">
-
+      <div class="pnl" style="margin-bottom:14px">
         <!-- Tabs -->
         <div class="ptabs">
-          <span class="ptab on" data-t="text">📋 Paste Text</span>
-          <span class="ptab" data-t="url">🔗 PokéPaste URL</span>
-          <span class="ptab" data-t="samples">⭐ Sample Teams</span>
+          <span class="ptab on" data-t="text">📋 PASTE</span>
+          <span class="ptab" data-t="url">🔗 URL</span>
+          <span class="ptab" data-t="samples">⭐ SAMPLES</span>
         </div>
 
-        <!-- Paste text tab -->
+        <!-- Paste -->
         <div class="ptab-body on" id="t-text">
           <textarea id="pasteInput" class="paste-area"
-            placeholder="Paste your Showdown export here…
+            placeholder="Paste Showdown export here...
 
-Example:
 Garchomp @ Rocky Helmet
 Ability: Rough Skin
 Tera Type: Dragon
@@ -277,121 +460,109 @@ Impish Nature
 - Dragon Tail
 - Fire Blast
 
-Dragapult @ Choice Specs
-Ability: Clear Body
-Tera Type: Fire
-…"></textarea>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-p" onclick="parsePaste()">⚡ Parse Team</button>
-            <button class="btn btn-g btn-sm" onclick="clearPaste()">✕ Clear</button>
-            <button class="btn btn-g btn-sm" onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
+..."></textarea>
+          <div style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-red" onclick="parsePaste()">▶ PARSE TEAM</button>
+            <button class="btn btn-dark btn-sm" onclick="clearPaste()">✕ CLEAR</button>
+            <button class="btn btn-dark btn-sm" onclick="pasteFromClipboard()">📋 CLIPBOARD</button>
           </div>
         </div>
 
-        <!-- URL tab -->
+        <!-- URL -->
         <div class="ptab-body" id="t-url">
-          <div style="margin-bottom:12px">
-            <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">
-              Enter a <strong style="color:var(--text2)">pokepast.es</strong> or <strong style="color:var(--text2)">play.pokemonshowdown.com</strong> share URL
-            </div>
-            <div class="url-row">
-              <input id="urlInput" class="fin" type="url" placeholder="https://pokepast.es/abc123…">
-              <button class="btn btn-p" onclick="fetchURL()">Fetch</button>
-            </div>
+          <div style="font-family:var(--font-px);font-size:7px;color:var(--text3);line-height:2.2;margin-bottom:10px">
+            ENTER A POKEPAST.ES OR SHOWDOWN SHARE URL
           </div>
-          <div id="urlStatus"></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5">
-            💡 <strong style="color:var(--text2)">Tip:</strong> From Showdown Teambuilder, click Export → copy the text, then use the Paste Text tab.
-            PokéPaste URLs (pokepast.es) are fetched via CORS proxy.
+          <div class="url-row">
+            <input id="urlInput" class="fin" type="url" placeholder="HTTPS://POKEPAST.ES/...">
+            <button class="btn btn-red" onclick="fetchURL()">FETCH</button>
+          </div>
+          <div id="urlStatus" style="margin-top:8px"></div>
+          <div style="font-family:var(--font-px);font-size:6px;color:var(--text3);margin-top:10px;line-height:2.2">
+            ▶ TIP: FROM SHOWDOWN, CLICK EXPORT AND COPY TEXT,<br>THEN USE THE PASTE TAB ABOVE.
           </div>
         </div>
 
-        <!-- Samples tab -->
+        <!-- Samples -->
         <div class="ptab-body" id="t-samples">
-          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:600">
-            Click any sample team to load it instantly:
+          <div style="font-family:var(--font-px);font-size:7px;color:var(--text3);margin-bottom:9px;line-height:2">
+            SELECT A SAMPLE TEAM:
           </div>
           <div class="sample-grid" id="sampleGrid"></div>
         </div>
-
       </div>
 
       <!-- Status -->
-      <div id="statusBar" style="display:none"></div>
+      <div id="statusBar"></div>
 
       <!-- Preview -->
       <div id="previewSection" style="display:none">
         <div class="pnl">
           <div class="pnl-hd">
             <div class="pnl-hd-ico">👁</div>
-            <h2 id="previewTitle">Parsed Team</h2>
+            <h2 id="previewTitle">PARSED TEAM</h2>
             <div class="pnl-hd-right">
-              <span id="parseCount" style="font-family:var(--mono);font-size:10px;color:var(--text3)"></span>
+              <span id="parseCount" style="font-family:var(--font-px);font-size:7px;color:var(--text3)"></span>
             </div>
           </div>
           <div class="pnl-body">
             <div id="previewGrid" class="preview-grid"></div>
             <div class="sep"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-gold btn-full" onclick="importTeam()">
-                🚀 Import to Card Builder
-              </button>
-            </div>
+            <button class="btn btn-gold btn-full" onclick="importTeam()">
+              ▶ IMPORT TO CARD BUILDER
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Success state -->
+      <!-- Success -->
       <div class="pnl" id="successPane" style="display:none">
         <div class="pnl-body">
           <div class="import-success show">
             <div class="success-ball">✅</div>
-            <div class="success-title">Team Imported!</div>
-            <div class="success-sub">Your team has been sent to the Card Builder. Head back to preview and export your card.</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
-              <a class="btn btn-p" href="index.html">🖼 Open Card Builder</a>
-              <button class="btn btn-g" onclick="resetImport()">⟵ Import Another</button>
+            <div class="success-title">TEAM IMPORTED!</div>
+            <div class="success-sub">YOUR TEAM HAS BEEN SENT TO THE CARD BUILDER. GO BUILD YOUR CARD!</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+              <a class="btn btn-red" href="index.html">▶ OPEN BUILDER</a>
+              <button class="btn btn-dark btn-sm" onclick="resetImport()">◀ IMPORT ANOTHER</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ RIGHT: Guide ═══ -->
+    <!-- ═══ RIGHT ═══ -->
     <div>
-      <div class="pnl" style="margin-bottom:16px">
-        <div class="pnl-hd">
-          <div class="pnl-hd-ico">📖</div>
-          <h2>How to Export from Showdown</h2>
-        </div>
+      <div class="pnl" style="margin-bottom:14px">
+        <div class="pnl-hd"><div class="pnl-hd-ico">📖</div><h2>HOW TO EXPORT</h2></div>
         <div class="pnl-body">
           <div class="steps">
             <div class="step">
               <div class="step-num">1</div>
               <div class="step-content">
-                <div class="step-title">Open Teambuilder</div>
-                <div class="step-desc">Go to <a href="https://play.pokemonshowdown.com/teambuilder" target="_blank">play.pokemonshowdown.com/teambuilder</a> and open or build your team.</div>
+                <div class="step-title">OPEN TEAMBUILDER</div>
+                <div class="step-desc">GO TO <a href="https://play.pokemonshowdown.com/teambuilder" target="_blank">SHOWDOWN TEAMBUILDER</a> AND OPEN YOUR TEAM.</div>
               </div>
             </div>
             <div class="step">
               <div class="step-num">2</div>
               <div class="step-content">
-                <div class="step-title">Click "Export"</div>
-                <div class="step-desc">Click the <strong style="color:var(--gold)">Export</strong> button on your team. This copies the Showdown format text to your clipboard.</div>
+                <div class="step-title">CLICK "EXPORT"</div>
+                <div class="step-desc">CLICK THE EXPORT BUTTON ON YOUR TEAM — THIS COPIES THE SHOWDOWN FORMAT TEXT.</div>
               </div>
             </div>
             <div class="step">
               <div class="step-num">3</div>
               <div class="step-content">
-                <div class="step-title">Paste Here</div>
-                <div class="step-desc">Click <strong style="color:var(--gold)">Paste from Clipboard</strong> or press <kbd style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:10px">Ctrl+V</kbd> in the text area, then hit <strong style="color:var(--accent)">Parse Team</strong>.</div>
+                <div class="step-title">PASTE & PARSE</div>
+                <div class="step-desc">HIT <kbd>CLIPBOARD</kbd> OR PRESS <kbd>CTRL+V</kbd> IN THE TEXT AREA, THEN CLICK PARSE TEAM.</div>
               </div>
             </div>
             <div class="step">
               <div class="step-num">4</div>
               <div class="step-content">
-                <div class="step-title">Import & Build</div>
-                <div class="step-desc">Review the parsed Pokémon, then click <strong style="color:var(--gold)">Import to Card Builder</strong> to load them into your card.</div>
+                <div class="step-title">IMPORT</div>
+                <div class="step-desc">REVIEW YOUR POKEMON, THEN HIT IMPORT TO CARD BUILDER!</div>
               </div>
             </div>
           </div>
@@ -399,44 +570,33 @@ Tera Type: Fire
       </div>
 
       <div class="pnl">
-        <div class="pnl-hd">
-          <div class="pnl-hd-ico">📄</div>
-          <h2>Showdown Format Reference</h2>
-        </div>
+        <div class="pnl-hd"><div class="pnl-hd-ico">📄</div><h2>FORMAT GUIDE</h2></div>
         <div class="pnl-body">
-          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:600">
-            Each Pokémon block looks like this:
+          <div style="font-family:var(--font-px);font-size:7px;color:var(--text3);margin-bottom:9px;line-height:2">
+            EACH POKEMON BLOCK:
           </div>
           <div class="format-box">
 <span class="format-line"><span class="fmt-name">Garchomp</span> (M) @ <span class="fmt-val">Rocky Helmet</span></span>
 <span class="format-line"><span class="fmt-label">Ability: </span><span class="fmt-val">Rough Skin</span></span>
 <span class="format-line"><span class="fmt-label">Tera Type: </span><span class="fmt-val">Dragon</span></span>
-<span class="format-line"><span class="fmt-label">EVs: </span><span class="fmt-val">252 HP / 164 Def / 92 Spe</span></span>
+<span class="format-line"><span class="fmt-label">EVs: </span><span class="fmt-val">252 HP / 164 Def</span></span>
 <span class="format-line"><span class="fmt-val">Impish</span> <span class="fmt-label">Nature</span></span>
 <span class="format-line"><span class="fmt-label">IVs: </span><span class="fmt-val">0 Atk</span></span>
+<span class="format-line"><span class="fmt-label">Shiny: </span><span class="fmt-val">Yes</span></span>
 <span class="format-line"><span class="fmt-move">- Stealth Rock</span></span>
 <span class="format-line"><span class="fmt-move">- Earthquake</span></span>
 <span class="format-line"><span class="fmt-move">- Dragon Tail</span></span>
 <span class="format-line"><span class="fmt-move">- Fire Blast</span></span>
           </div>
           <div class="sep"></div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
-              <strong style="color:var(--text2)">Nickname support:</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">Nickname (Species) @ Item</code>
-            </div>
-            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
-              <strong style="color:var(--text2)">Shiny support:</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">Shiny: Yes</code> line
-            </div>
-            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
-              <strong style="color:var(--text2)">Gender:</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">(M)</code> or <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">(F)</code> after name
-            </div>
-            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
-              <strong style="color:var(--text2)">Separate Pokémon</strong> with a blank line
-            </div>
+          <div style="font-family:var(--font-px);font-size:7px;color:var(--text3);line-height:2.5">
+            ▶ NICKNAME: <span style="color:var(--text2)">NICK (SPECIES) @ ITEM</span><br>
+            ▶ GENDER: <span style="color:var(--text2)">(M) OR (F) AFTER NAME</span><br>
+            ▶ SEPARATE MON WITH BLANK LINE<br>
+            ▶ MAX 6 POKEMON PER TEAM
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -444,704 +604,234 @@ Tera Type: Fire
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════
-// TYPE DATA
-// ══════════════════════════════════════
-const TC = {Normal:'#A0A29F',Fire:'#FF7C44',Water:'#4D90D5',Electric:'#F2D94E',
+const TC={Normal:'#A0A29F',Fire:'#FF7C44',Water:'#4D90D5',Electric:'#F2D94E',
   Grass:'#5DBE62',Ice:'#73CEC0',Fighting:'#CE4069',Poison:'#A55DD2',
   Ground:'#CE8E6C',Flying:'#89AAE3',Psychic:'#F86481',Bug:'#92A119',
   Rock:'#C9BC8A',Ghost:'#5269AC',Dragon:'#0B6DC3',Dark:'#595761',Steel:'#5A8EA2',Fairy:'#EF70EF'};
+const STAT_MAP={'hp':'HP','atk':'Atk','def':'Def','spa':'SpA','spd':'SpD','spe':'Spe',
+  'attack':'Atk','defense':'Def','specialattack':'SpA','specialdefense':'SpD','speed':'Spe'};
 
-const STAT_MAP = {
-  'hp':'HP','atk':'Atk','def':'Def','spa':'SpA','spd':'SpD','spe':'Spe',
-  'attack':'Atk','defense':'Def','specialattack':'SpA','specialdefense':'SpD','speed':'Spe'
-};
+const cap=s=>s.split(/[\s-]+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+function toApiName(n){return n.toLowerCase().replace(/\s+/g,'-').replace(/['.]/g,'').replace(/é/g,'e').replace(/♀/g,'-f').replace(/♂/g,'-m')}
+function normStat(s){const k=s.toLowerCase().replace(/[^a-z]/g,'');return STAT_MAP[k]||s}
+const sprUrl=(n,shiny=false)=>{const b='https://play.pokemonshowdown.com/sprites/gen5';return shiny?`${b}-shiny/${n}.png`:`${b}/${n}.png`};
+const tiUrl=t=>`https://img.pokemondb.net/images/badges/type/${t.toLowerCase()}.png`;
+const tpill=t=>{const c=TC[t]||'#888';return `<span class="tpill" style="background:${c};border-color:rgba(0,0,0,.5)"><img src="${tiUrl(t)}" alt="${t}" onerror="this.style.display='none'" style="width:10px;height:10px;image-rendering:pixelated">${t.toUpperCase()}</span>`};
 
-// ══════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════
-const cap = s => s.split(/[\s-]+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-const sprUrl = (name,shiny=false) => {
-  // Convert showdown name to PokeAPI format for sprite lookup
-  const n = toApiName(name);
-  const b='https://play.pokemonshowdown.com/sprites/gen5';
-  if(shiny) return `https://play.pokemonshowdown.com/sprites/gen5-shiny/${n}.png`;
-  return `${b}/${n}.png`;
-};
-const tiUrl = t=>`https://img.pokemondb.net/images/badges/type/${t.toLowerCase()}.png`;
-const tpill = t=>{
-  const c=TC[t]||'#888';
-  return `<span class="tpill" style="background:${c}99;border:1px solid ${c}66">
-    <img src="${tiUrl(t)}" alt="${t}" onerror="this.style.display='none'" style="width:10px;height:10px;image-rendering:pixelated">
-    ${t}</span>`;
-};
-
-// Convert Showdown name to API-compatible format
-function toApiName(name) {
-  return name.toLowerCase()
-    .replace(/\s+/g,'-')
-    .replace(/['.]/g,'')
-    .replace(/é/g,'e')
-    .replace(/♀/g,'-f')
-    .replace(/♂/g,'-m');
+const typeCache={};
+async function getTypes(n){
+  if(typeCache[n]) return typeCache[n];
+  try{
+    const r=await fetch(`https://pokeapi.co/api/v2/pokemon/${n}`);
+    if(!r.ok){typeCache[n]=null;return null}
+    const d=await r.json();
+    const SK=['HP','Atk','Def','SpA','SpD','Spe'],SA=['hp','attack','defense','special-attack','special-defense','speed'];
+    const res={id:d.id,types:d.types.map(t=>cap(t.type.name)),
+      abilities:d.abilities.map(a=>cap(a.ability.name.replace(/-/g,' '))),
+      baseStats:Object.fromEntries(SK.map((s,i)=>[s,d.stats.find(x=>x.stat.name===SA[i])?.base_stat??0]))};
+    typeCache[n]=res;return res;
+  }catch(e){typeCache[n]=null;return null}
 }
 
-// Normalize stat key from EV/IV strings like "Spe", "SpA", "HP"
-function normStat(s) {
-  const k = s.toLowerCase().replace(/[^a-z]/g,'');
-  return STAT_MAP[k] || s;
-}
+let parsedMons=[];
 
-// ══════════════════════════════════════
-// SHOWDOWN FORMAT PARSER
-// ══════════════════════════════════════
-function parseShowdown(text) {
-  // Split into blocks by blank lines
-  const blocks = text.trim().split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
-  const mons = [];
-  const errors = [];
-
-  blocks.forEach((block, bi) => {
-    const lines = block.split('\n').map(l=>l.trim()).filter(Boolean);
+function parseShowdown(text){
+  const blocks=text.trim().split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  const mons=[],errors=[];
+  blocks.forEach((block,bi)=>{
+    const lines=block.split('\n').map(l=>l.trim()).filter(Boolean);
     if(!lines.length) return;
-
-    const mon = {
-      nickname: '',
-      name: '',
-      item: '',
-      ability: '',
-      tera: '',
-      nature: '',
-      shiny: false,
-      gender: '',
-      moves: [],
-      evs: {HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
-      ivs: {HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
-      level: 100,
-      rawName: '',
-      parseError: null,
-    };
-
-    // ── Line 1: Name (Nickname) @ Item OR Name @ Item ──
-    const firstLine = lines[0];
-
-    // Extract gender from parentheses like (M) or (F) before @
-    let fl = firstLine;
-    const genderMatch = fl.match(/\(([MF])\)/);
-    if(genderMatch) {
-      mon.gender = genderMatch[1];
-      fl = fl.replace(/\s*\([MF]\)/, '');
-    }
-
-    // Split on @ for item
-    const atParts = fl.split('@');
-    if(atParts.length >= 2) {
-      mon.item = atParts.slice(1).join('@').trim();
-    }
-    const namePart = atParts[0].trim();
-
-    // Check if nickname: "Nickname (Species)"
-    const nickMatch = namePart.match(/^(.+?)\s+\((.+?)\)\s*$/);
-    if(nickMatch) {
-      mon.nickname = nickMatch[1].trim();
-      mon.name = nickMatch[2].trim();
-    } else {
-      mon.name = namePart;
-    }
-    mon.rawName = mon.name;
-
-    if(!mon.name) {
-      errors.push(`Block ${bi+1}: Could not parse Pokémon name`);
-      return;
-    }
-
-    // ── Remaining lines ──
+    const mon={nickname:'',name:'',item:'',ability:'',tera:'',nature:'',shiny:false,gender:'',
+      moves:[],evs:{HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},ivs:{HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
+      level:100,rawName:'',parseError:null};
+    let fl=lines[0];
+    const gm=fl.match(/\(([MF])\)/);
+    if(gm){mon.gender=gm[1];fl=fl.replace(/\s*\([MF]\)/,'');}
+    const atP=fl.split('@');
+    if(atP.length>=2) mon.item=atP.slice(1).join('@').trim();
+    const np=atP[0].trim();
+    const nm=np.match(/^(.+?)\s+\((.+?)\)\s*$/);
+    if(nm){mon.nickname=nm[1].trim();mon.name=nm[2].trim();}else{mon.name=np;}
+    mon.rawName=mon.name;
+    if(!mon.name){errors.push(`BLOCK ${bi+1}: COULD NOT PARSE NAME`);return;}
     for(let i=1;i<lines.length;i++){
-      const line = lines[i];
-
-      // Move line
-      if(line.startsWith('- ')) {
-        const move = line.slice(2).trim().split('/')[0].trim(); // strip hidden power type
-        if(mon.moves.length < 4) mon.moves.push(move);
-        continue;
+      const line=lines[i];
+      if(line.startsWith('- ')){if(mon.moves.length<4)mon.moves.push(line.slice(2).trim().split('/')[0].trim());continue}
+      if(/^ability\s*:/i.test(line)){mon.ability=line.split(':').slice(1).join(':').trim();continue}
+      if(/^tera\s*type\s*:/i.test(line)){mon.tera=line.split(':').slice(1).join(':').trim();continue}
+      if(/^shiny\s*:\s*yes/i.test(line)){mon.shiny=true;continue}
+      if(/^level\s*:/i.test(line)){mon.level=parseInt(line.split(':')[1])||100;continue}
+      if(/^evs\s*:/i.test(line)){
+        line.split(':').slice(1).join(':').trim().split('/').forEach(p=>{
+          const m=p.trim().match(/^(\d+)\s+(.+)$/);
+          if(m){const k=normStat(m[2].trim());if(k in mon.evs)mon.evs[k]=parseInt(m[1]);}
+        });continue;
       }
-
-      // Ability
-      if(/^ability\s*:/i.test(line)) {
-        mon.ability = line.split(':').slice(1).join(':').trim();
-        continue;
+      if(/^ivs\s*:/i.test(line)){
+        line.split(':').slice(1).join(':').trim().split('/').forEach(p=>{
+          const m=p.trim().match(/^(\d+)\s+(.+)$/);
+          if(m){const k=normStat(m[2].trim());if(k in mon.ivs)mon.ivs[k]=parseInt(m[1]);}
+        });continue;
       }
-
-      // Tera Type
-      if(/^tera\s*type\s*:/i.test(line)) {
-        mon.tera = line.split(':').slice(1).join(':').trim();
-        continue;
-      }
-
-      // Shiny
-      if(/^shiny\s*:\s*yes/i.test(line)) {
-        mon.shiny = true;
-        continue;
-      }
-
-      // Level
-      if(/^level\s*:/i.test(line)) {
-        mon.level = parseInt(line.split(':')[1]) || 100;
-        continue;
-      }
-
-      // EVs: 252 HP / 4 Def / 252 Spe
-      if(/^evs\s*:/i.test(line)) {
-        const evStr = line.split(':').slice(1).join(':').trim();
-        evStr.split('/').forEach(part => {
-          const m = part.trim().match(/^(\d+)\s+(.+)$/);
-          if(m) {
-            const statKey = normStat(m[2].trim());
-            if(statKey in mon.evs) mon.evs[statKey] = parseInt(m[1]);
-          }
-        });
-        continue;
-      }
-
-      // IVs: 0 Atk
-      if(/^ivs\s*:/i.test(line)) {
-        const ivStr = line.split(':').slice(1).join(':').trim();
-        ivStr.split('/').forEach(part => {
-          const m = part.trim().match(/^(\d+)\s+(.+)$/);
-          if(m) {
-            const statKey = normStat(m[2].trim());
-            if(statKey in mon.ivs) mon.ivs[statKey] = parseInt(m[1]);
-          }
-        });
-        continue;
-      }
-
-      // Nature: "Adamant Nature" or "Adamant nature"
-      const natMatch = line.match(/^(\w+)\s+nature/i);
-      if(natMatch) {
-        mon.nature = cap(natMatch[1]);
-        continue;
-      }
-
-      // Happiness
-      if(/^happiness\s*:/i.test(line)) continue;
+      const natM=line.match(/^(\w+)\s+nature/i);
+      if(natM){mon.nature=cap(natM[1]);continue}
     }
-
-    // Convert name to API-compatible slug for lookup
-    mon.apiName = toApiName(mon.name);
+    mon.apiName=toApiName(mon.name);
     mons.push(mon);
   });
-
-  return {mons, errors};
+  return{mons,errors};
 }
 
-// ══════════════════════════════════════
-// TYPE LOOKUP CACHE (via PokeAPI)
-// ══════════════════════════════════════
-const typeCache = {};
-
-async function getTypes(apiName) {
-  if(typeCache[apiName]) return typeCache[apiName];
-  try {
-    const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${apiName}`);
-    if(!r.ok) {
-      // Try alternate names (e.g. "mr-mime" vs "mr. mime")
-      typeCache[apiName] = null;
-      return null;
-    }
-    const d = await r.json();
-    const types = d.types.map(t=>cap(t.type.name));
-    const abilities = d.abilities.map(a=>cap(a.ability.name.replace(/-/g,' ')));
-    const baseStats = {};
-    const SK=['HP','Atk','Def','SpA','SpD','Spe'];
-    const SA=['hp','attack','defense','special-attack','special-defense','speed'];
-    SK.forEach((s,i)=>{ baseStats[s]=d.stats.find(x=>x.stat.name===SA[i])?.base_stat??0; });
-    const result = {id:d.id, types, abilities, baseStats};
-    typeCache[apiName] = result;
-    return result;
-  } catch(e) { typeCache[apiName]=null; return null; }
-}
-
-// ══════════════════════════════════════
-// STATE
-// ══════════════════════════════════════
-let parsedMons = [];
-
-// ══════════════════════════════════════
-// PARSE & PREVIEW
-// ══════════════════════════════════════
-async function parsePaste() {
-  const text = document.getElementById('pasteInput').value.trim();
-  if(!text) { showStatus('error','⚠ Paste some Showdown export text first.'); return; }
-
-  showStatus('info','<span class="spin"></span> Parsing team…');
+async function parsePaste(){
+  const text=document.getElementById('pasteInput').value.trim();
+  if(!text){showStatus('error','▶ PASTE SOME SHOWDOWN TEXT FIRST.');return;}
+  showStatus('info','<span class="spin"></span> PARSING...');
   document.getElementById('previewSection').style.display='none';
   document.getElementById('successPane').style.display='none';
-
-  const {mons, errors} = parseShowdown(text);
-
-  if(!mons.length) {
-    showStatus('error','❌ Could not parse any Pokémon. Make sure the format is correct (see guide on the right).');
-    return;
-  }
-
-  if(mons.length > 6) {
-    showStatus('warning',`⚠ Found ${mons.length} Pokémon — only the first 6 will be imported.`);
-    mons.splice(6);
-  }
-
-  // Fetch types for all mons in parallel
-  showStatus('info',`<span class="spin"></span> Looking up data for ${mons.length} Pokémon…`);
-  await Promise.all(mons.map(async m => {
-    const data = await getTypes(m.apiName);
-    if(data) {
-      m.id = data.id;
-      m.types = data.types;
-      m.knownAbilities = data.abilities;
-      m.baseStats = data.baseStats;
-      if(!m.ability && data.abilities.length) m.ability = data.abilities[0];
-      m.resolved = true;
-    } else {
-      m.resolved = false;
-      m.types = [];
-    }
+  const{mons,errors}=parseShowdown(text);
+  if(!mons.length){showStatus('error','COULD NOT PARSE ANY POKEMON. CHECK THE FORMAT.');return;}
+  if(mons.length>6){showStatus('warning',`FOUND ${mons.length} MON — ONLY FIRST 6 IMPORTED.`);mons.splice(6);}
+  showStatus('info',`<span class="spin"></span> LOOKING UP ${mons.length} POKEMON...`);
+  await Promise.all(mons.map(async m=>{
+    const data=await getTypes(m.apiName);
+    if(data){m.id=data.id;m.types=data.types;m.knownAbilities=data.abilities;m.baseStats=data.baseStats;
+      if(!m.ability&&data.abilities.length)m.ability=data.abilities[0];m.resolved=true;}
+    else{m.resolved=false;m.types=[];}
   }));
-
-  parsedMons = mons;
-  renderPreview(mons, errors);
+  parsedMons=mons;renderPreview(mons,errors);
 }
 
-function renderPreview(mons, errors) {
-  const ok = mons.filter(m=>m.resolved).length;
-  const bad = mons.filter(m=>!m.resolved).length;
-
-  if(bad === 0) {
-    showStatus('success',`✅ ${ok} Pokémon parsed successfully — ready to import!`);
-  } else {
-    showStatus('warning',`⚠ ${ok} resolved, ${bad} could not be found (may still import with limited data).`);
-  }
-
-  document.getElementById('parseCount').textContent = `${mons.length} Pokémon`;
-  document.getElementById('previewTitle').textContent = `Parsed Team (${mons.length})`;
-
-  const grid = document.getElementById('previewGrid');
-  grid.innerHTML = mons.map((m,i) => {
-    const sprName = m.apiName;
-    const sprSrc = m.shiny
-      ? `https://play.pokemonshowdown.com/sprites/gen5-shiny/${sprName}.png`
-      : `https://play.pokemonshowdown.com/sprites/gen5/${sprName}.png`;
-    const fallback = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${m.id||0}.png`;
-
-    const evParts = ['HP','Atk','Def','SpA','SpD','Spe'].filter(k=>(m.evs||{})[k]>0).map(k=>`${m.evs[k]}${k}`);
-    const evStr = evParts.join(' / ');
-
+function renderPreview(mons,errors){
+  const ok=mons.filter(m=>m.resolved).length,bad=mons.filter(m=>!m.resolved).length;
+  if(bad===0)showStatus('success',`${ok} POKEMON READY — HIT IMPORT!`);
+  else showStatus('warning',`${ok} RESOLVED, ${bad} UNKNOWN.`);
+  document.getElementById('parseCount').textContent=`${mons.length} MON`;
+  document.getElementById('previewTitle').textContent=`PARSED (${mons.length})`;
+  const grid=document.getElementById('previewGrid');
+  grid.innerHTML=mons.map((m)=>{
+    const spr=`https://play.pokemonshowdown.com/sprites/gen5${m.shiny?'-shiny':''}/${m.apiName}.png`;
+    const fb=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${m.id||0}.png`;
+    const evP=['HP','Atk','Def','SpA','SpD','Spe'].filter(k=>(m.evs||{})[k]>0).map(k=>`${m.evs[k]}${k}`);
     return `<div class="pmon-card ${m.resolved?'valid':'invalid'}">
-      <img class="pmon-spr" src="${sprSrc}" alt="${m.name}"
-        onerror="this.src='${fallback}'"
-        style="image-rendering:pixelated">
+      <img class="pmon-spr" src="${spr}" alt="${m.name}" onerror="this.src='${fb}'">
       <div class="pmon-info">
         ${m.nickname?`<div class="pmon-nick">"${m.nickname}"</div>`:''}
-        <div class="pmon-name">
-          ${cap(m.name)}
-          ${m.shiny?'<span style="font-size:11px">✨</span>':''}
-          ${m.gender==='M'?'<span style="font-size:11px;color:#6eb0ff">♂</span>':m.gender==='F'?'<span style="font-size:11px;color:#ff80aa">♀</span>':''}
-        </div>
-        <div class="pmon-meta">
-          ${(m.types||[]).map(tpill).join('')}
-          ${m.tera?`<span class="tpill" style="background:${TC[m.tera]||'#888'}55;border:1px solid ${TC[m.tera]||'#888'}44">◎ ${m.tera}</span>`:''}
-        </div>
-        ${m.ability?`<div class="pmon-detail">Ability: <span>${m.ability}</span></div>`:''}
-        ${m.item?`<div class="pmon-detail">Item: <span>${m.item}</span></div>`:''}
-        ${m.nature?`<div class="pmon-detail">Nature: <span>${m.nature}</span></div>`:''}
-        ${evStr?`<div class="pmon-detail">EVs: <span style="font-size:10px;font-family:var(--mono)">${evStr}</span></div>`:''}
-        ${m.moves.length?`<div class="pmon-moves">${m.moves.map(mv=>`<span class="pmon-move">${mv}</span>`).join('')}</div>`:''}
+        <div class="pmon-name">${cap(m.name).toUpperCase()} ${m.shiny?'✨':''} ${m.gender==='M'?'♂':m.gender==='F'?'♀':''}</div>
+        <div class="pmon-meta">${(m.types||[]).map(tpill).join('')}${m.tera?`<span class="tpill" style="background:${TC[m.tera]||'#888'}88;border-color:rgba(0,0,0,.5)">◎${m.tera.toUpperCase()}</span>`:''}</div>
+        ${m.ability?`<div class="pmon-detail">ABILITY: <span>${m.ability.toUpperCase()}</span></div>`:''}
+        ${m.item?`<div class="pmon-detail">ITEM: <span>${m.item.toUpperCase()}</span></div>`:''}
+        ${m.nature?`<div class="pmon-detail">NATURE: <span>${m.nature.toUpperCase()}</span></div>`:''}
+        ${evP.length?`<div class="pmon-detail">EVS: <span style="font-family:var(--font-vt);font-size:13px">${evP.join(' / ')}</span></div>`:''}
+        ${m.moves.length?`<div class="pmon-moves">${m.moves.map(mv=>`<span class="pmon-move">${mv.toUpperCase()}</span>`).join('')}</div>`:''}
       </div>
-      <span class="pmon-badge ${m.resolved?'badge-ok':'badge-err'}">${m.resolved?'✓ OK':'? Unknown'}</span>
+      <span class="pmon-badge ${m.resolved?'badge-ok':'badge-err'}">${m.resolved?'OK':'??'}</span>
     </div>`;
   }).join('');
-
-  if(errors.length) {
-    grid.innerHTML += `<div style="font-size:11px;color:var(--accent);padding:8px 0">
-      ${errors.map(e=>`<div>⚠ ${e}</div>`).join('')}</div>`;
-  }
-
+  if(errors.length)grid.innerHTML+=`<div style="font-family:var(--font-px);font-size:6px;color:var(--accent);padding:6px 0;line-height:2">${errors.map(e=>`<div>▶ ${e}</div>`).join('')}</div>`;
   document.getElementById('previewSection').style.display='block';
 }
 
-// ══════════════════════════════════════
-// IMPORT TO CARD BUILDER
-// ══════════════════════════════════════
-function importTeam() {
-  if(!parsedMons.length) { showToast('No team to import'); return; }
-
-  // Build team array compatible with index.html format
-  const teamData = Array.from({length:6},(_,i)=>({
-    id: i,
-    mon: parsedMons[i] ? buildMonObj(parsedMons[i]) : null
-  }));
-
-  try {
-    localStorage.setItem('pokecardTeam', JSON.stringify(teamData));
-    localStorage.setItem('pokecardImported', Date.now().toString());
-
-    // Show success state
+function importTeam(){
+  if(!parsedMons.length){showToast('NO TEAM TO IMPORT');return;}
+  const teamData=Array.from({length:6},(_,i)=>({id:i,mon:parsedMons[i]?buildMon(parsedMons[i]):null}));
+  try{
+    localStorage.setItem('pokecardTeam',JSON.stringify(teamData));
+    localStorage.setItem('pokecardImported',Date.now().toString());
     document.getElementById('previewSection').style.display='none';
-    document.getElementById('statusBar').style.display='none';
+    document.getElementById('statusBar').innerHTML='';
     document.getElementById('successPane').style.display='block';
-    showToast('Team imported! 🎉');
-  } catch(e) {
-    showStatus('error','❌ Could not save team — localStorage may be unavailable. Try opening index.html directly.');
-  }
+    showToast('TEAM IMPORTED!');
+  }catch(e){showStatus('error','LOCALSTORAGE UNAVAILABLE — OPEN INDEX.HTML DIRECTLY.');}
 }
 
-function buildMonObj(m) {
-  return {
-    id:             m.id || null,
-    name:           m.apiName,
-    types:          m.types || [],
-    knownAbilities: m.knownAbilities || [],
-    ability:        m.ability || '',
-    baseStats:      m.baseStats || {HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
-    moves:          m.moves || [],
-    evs:            m.evs  || {HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
-    ivs:            m.ivs  || {HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
-    nature:         m.nature || '',
-    item:           m.item || '',
-    nickname:       m.nickname || '',
-    gender:         m.gender || '',
-    shiny:          m.shiny || false,
-    tera:           m.tera || '',
-  };
+function buildMon(m){
+  return{id:m.id||null,name:m.apiName,types:m.types||[],knownAbilities:m.knownAbilities||[],
+    ability:m.ability||'',baseStats:m.baseStats||{HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
+    moves:m.moves||[],evs:m.evs||{HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
+    ivs:m.ivs||{HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
+    nature:m.nature||'',item:m.item||'',nickname:m.nickname||'',gender:m.gender||'',shiny:m.shiny||false,tera:m.tera||''};
 }
 
-function resetImport() {
-  parsedMons = [];
+function resetImport(){
+  parsedMons=[];
   document.getElementById('successPane').style.display='none';
   document.getElementById('previewSection').style.display='none';
-  document.getElementById('statusBar').style.display='none';
+  document.getElementById('statusBar').innerHTML='';
   document.getElementById('pasteInput').value='';
 }
 
-// ══════════════════════════════════════
-// URL FETCH (pokepast.es)
-// ══════════════════════════════════════
-async function fetchURL() {
-  const url = document.getElementById('urlInput').value.trim();
-  if(!url) { document.getElementById('urlStatus').innerHTML=`<div class="status-bar error">⚠ Enter a URL first.</div>`; return; }
-
-  document.getElementById('urlStatus').innerHTML=`<div class="status-bar info"><span class="spin"></span> Fetching…</div>`;
-
-  let fetchUrl = url;
-
-  // pokepast.es → use raw endpoint
-  if(url.includes('pokepast.es')) {
-    // https://pokepast.es/abc123 → https://pokepast.es/abc123/raw
-    fetchUrl = url.replace(/\/+$/, '') + '/raw';
-  }
-
-  try {
-    // Try direct fetch first, then CORS proxy
-    let text = '';
-    try {
-      const r = await fetch(fetchUrl);
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      text = await r.text();
-    } catch(e) {
-      // Try CORS proxy
-      const proxy = `https://corsproxy.io/?${encodeURIComponent(fetchUrl)}`;
-      const r2 = await fetch(proxy);
-      if(!r2.ok) throw new Error('Proxy failed');
-      text = await r2.text();
-    }
-
-    // Strip HTML if it snuck through
-    text = text.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
-
-    document.getElementById('urlStatus').innerHTML=`<div class="status-bar success">✅ Fetched successfully!</div>`;
-    document.getElementById('pasteInput').value = text;
-
-    // Switch to text tab and parse
-    activatePtab('text');
-    parsePaste();
-  } catch(e) {
-    document.getElementById('urlStatus').innerHTML=`<div class="status-bar error">❌ Could not fetch URL. Try copying the text manually instead.</div>`;
-  }
+async function fetchURL(){
+  const url=document.getElementById('urlInput').value.trim();
+  if(!url){document.getElementById('urlStatus').innerHTML=`<div class="status-bar error">▶ ENTER A URL.</div>`;return;}
+  document.getElementById('urlStatus').innerHTML=`<div class="status-bar info"><span class="spin"></span> FETCHING...</div>`;
+  let fetchUrl=url;
+  if(url.includes('pokepast.es')) fetchUrl=url.replace(/\/+$/,'')+'/raw';
+  try{
+    let text='';
+    try{const r=await fetch(fetchUrl);if(!r.ok)throw new Error();text=await r.text();}
+    catch(e){const r2=await fetch(`https://corsproxy.io/?${encodeURIComponent(fetchUrl)}`);if(!r2.ok)throw new Error();text=await r2.text();}
+    text=text.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+    document.getElementById('urlStatus').innerHTML=`<div class="status-bar success">✓ FETCHED!</div>`;
+    document.getElementById('pasteInput').value=text;
+    activatePtab('text');parsePaste();
+  }catch(e){document.getElementById('urlStatus').innerHTML=`<div class="status-bar error">FETCH FAILED — COPY TEXT MANUALLY.</div>`;}
 }
 
-// ══════════════════════════════════════
-// CLIPBOARD
-// ══════════════════════════════════════
-async function pasteFromClipboard() {
-  try {
-    const text = await navigator.clipboard.readText();
-    if(!text.trim()) { showToast('Clipboard is empty'); return; }
-    document.getElementById('pasteInput').value = text;
-    showToast('Pasted from clipboard ✅');
-  } catch(e) {
-    showToast('Clipboard access denied — paste manually with Ctrl+V');
-  }
+async function pasteFromClipboard(){
+  try{
+    const text=await navigator.clipboard.readText();
+    if(!text.trim()){showToast('CLIPBOARD EMPTY');return;}
+    document.getElementById('pasteInput').value=text;
+    showToast('PASTED!');
+  }catch(e){showToast('CLIPBOARD DENIED — USE CTRL+V');}
 }
 
-function clearPaste() {
-  document.getElementById('pasteInput').value='';
-  parsedMons=[];
-  document.getElementById('previewSection').style.display='none';
-  document.getElementById('statusBar').style.display='none';
+function clearPaste(){document.getElementById('pasteInput').value='';parsedMons=[];document.getElementById('previewSection').style.display='none';document.getElementById('statusBar').innerHTML='';}
+
+function showStatus(type,html){
+  document.getElementById('statusBar').innerHTML=`<div class="status-bar ${type}">${html}</div>`;
 }
 
-// ══════════════════════════════════════
-// STATUS
-// ══════════════════════════════════════
-function showStatus(type, html) {
-  const el = document.getElementById('statusBar');
-  el.style.display='block';
-  el.innerHTML=`<div class="status-bar ${type}">${html}</div>`;
-}
-
-// ══════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════
 let _tt;
-function showToast(msg) {
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.classList.add('on');
-  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'),2800);
-}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2800);}
 
-// ══════════════════════════════════════
-// TABS
-// ══════════════════════════════════════
-document.querySelectorAll('.ptab').forEach(t=>{
-  t.addEventListener('click',()=>activatePtab(t.dataset.t));
-});
-function activatePtab(name){
+document.querySelectorAll('.ptab').forEach(t=>t.addEventListener('click',()=>activatePtab(t.dataset.t)));
+function activatePtab(n){
   document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('on'));
   document.querySelectorAll('.ptab-body').forEach(x=>x.classList.remove('on'));
-  document.querySelector(`.ptab[data-t="${name}"]`)?.classList.add('on');
-  document.getElementById('t-'+name)?.classList.add('on');
+  document.querySelector(`.ptab[data-t="${n}"]`)?.classList.add('on');
+  document.getElementById('t-'+n)?.classList.add('on');
 }
 
-// ══════════════════════════════════════
-// SAMPLE TEAMS
-// ══════════════════════════════════════
-const SAMPLES = [
-  {
-    name:'Classic Rain Team',
-    desc:'Pelipper + Swampert + 4 sweepers',
-    paste:`Pelipper @ Choice Scarf
-Ability: Drizzle
-EVs: 252 SpA / 4 SpD / 252 Spe
-Modest Nature
-- Hurricane
-- Scald
-- U-turn
-- Roost
-
-Swampert @ Swampertite
-Ability: Torrent
-EVs: 252 Atk / 4 SpD / 252 Spe
-Adamant Nature
-- Waterfall
-- Earthquake
-- Ice Punch
-- Power-Up Punch
-
-Ferrothorn @ Leftovers
-Ability: Iron Barbs
-EVs: 252 HP / 88 Def / 168 SpD
-Relaxed Nature
-IVs: 0 Spe
-- Stealth Rock
-- Leech Seed
-- Power Whip
-- Knock Off
-
-Barraskewda @ Choice Band
-Ability: Swift Swim
-EVs: 252 Atk / 4 Def / 252 Spe
-Jolly Nature
-- Liquidation
-- Close Combat
-- Psychic Fangs
-- Flip Turn
-
-Toxapex @ Black Sludge
-Ability: Regenerator
-EVs: 252 HP / 252 Def / 4 SpD
-Bold Nature
-IVs: 0 Atk
-- Scald
-- Toxic
-- Recover
-- Haze
-
-Kingdra @ Choice Specs
-Ability: Swift Swim
-EVs: 4 HP / 252 SpA / 252 Spe
-Modest Nature
-- Hydro Pump
-- Draco Meteor
-- Hurricane
-- Flash Cannon`
-  },
-  {
-    name:'Trick Room Offense',
-    desc:'Slow powerhouses with Trick Room',
-    paste:`Hatterene @ Psychic Seed
-Ability: Magic Bounce
-EVs: 252 HP / 4 Def / 252 SpA
-Quiet Nature
-IVs: 0 Atk / 0 Spe
-- Trick Room
-- Psychic
-- Mystical Fire
-- Healing Wish
-
-Reuniclus @ Life Orb
-Ability: Magic Guard
-EVs: 192 HP / 64 Def / 252 SpA
-Quiet Nature
-IVs: 0 Atk / 0 Spe
-- Psychic
-- Shadow Ball
-- Focus Blast
-- Trick Room
-
-Conkeldurr @ Flame Orb
-Ability: Guts
-EVs: 252 HP / 252 Atk / 4 SpD
-Brave Nature
-IVs: 0 Spe
-- Drain Punch
-- Knock Off
-- Ice Punch
-- Mach Punch
-
-Marowak-Alola @ Thick Club
-Ability: Rock Head
-EVs: 252 HP / 252 Atk / 4 SpD
-Brave Nature
-IVs: 0 Spe
-- Flare Blitz
-- Bonemerang
-- Shadow Bone
-- Swords Dance
-
-Dracovish @ Choice Band
-Ability: Strong Jaw
-EVs: 252 HP / 252 Atk / 4 SpD
-Brave Nature
-IVs: 0 Spe
-- Fishious Rend
-- Crunch
-- Outrage
-- Ice Fang
-
-Stakataka @ Weakness Policy
-Ability: Beast Boost
-EVs: 252 HP / 252 Atk / 4 SpD
-Brave Nature
-IVs: 0 Spe
-- Trick Room
-- Gyro Ball
-- Rock Slide
-- Superpower`
-  },
-  {
-    name:'Sun Sweepers',
-    desc:'Drought-boosted offensive threats',
-    paste:`Torkoal @ Heat Rock
-Ability: Drought
-EVs: 252 HP / 4 SpA / 252 SpD
-Calm Nature
-IVs: 0 Atk
-- Stealth Rock
-- Rapid Spin
-- Lava Plume
-- Yawn
-
-Venusaur @ Life Orb
-Ability: Chlorophyll
-EVs: 4 HP / 252 SpA / 252 Spe
-Modest Nature
-- Solar Beam
-- Sludge Bomb
-- Earth Power
-- Sleep Powder
-
-Volcarona @ Charcoal
-Ability: Flame Body
-EVs: 4 HP / 252 SpA / 252 Spe
-Timid Nature
-- Fiery Dance
-- Bug Buzz
-- Quiver Dance
-- Roost
-
-Garchomp @ Rocky Helmet
-Ability: Rough Skin
-EVs: 252 HP / 164 Def / 92 Spe
-Impish Nature
-- Stealth Rock
-- Earthquake
-- Dragon Tail
-- Fire Blast
-
-Heatran @ Air Balloon
-Ability: Flash Fire
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Magma Storm
-- Flash Cannon
-- Earth Power
-- Taunt
-
-Zeraora @ Choice Band
-Ability: Volt Absorb
-EVs: 252 Atk / 4 SpD / 252 Spe
-Jolly Nature
-- Plasma Fists
-- Close Combat
-- Knock Off
-- U-turn`
-  },
+const SAMPLES=[
+  {name:'RAIN TEAM',desc:'PELIPPER + SWAMPERT + SWEEPERS',paste:`Pelipper @ Choice Scarf\nAbility: Drizzle\nEVs: 252 SpA / 4 SpD / 252 Spe\nModest Nature\n- Hurricane\n- Scald\n- U-turn\n- Roost\n\nSwampert @ Swampertite\nAbility: Torrent\nEVs: 252 Atk / 4 SpD / 252 Spe\nAdamant Nature\n- Waterfall\n- Earthquake\n- Ice Punch\n- Power-Up Punch\n\nFerrothorn @ Leftovers\nAbility: Iron Barbs\nEVs: 252 HP / 88 Def / 168 SpD\nRelaxed Nature\nIVs: 0 Spe\n- Stealth Rock\n- Leech Seed\n- Power Whip\n- Knock Off\n\nBarraskewda @ Choice Band\nAbility: Swift Swim\nEVs: 252 Atk / 4 Def / 252 Spe\nJolly Nature\n- Liquidation\n- Close Combat\n- Psychic Fangs\n- Flip Turn\n\nToxapex @ Black Sludge\nAbility: Regenerator\nEVs: 252 HP / 252 Def / 4 SpD\nBold Nature\nIVs: 0 Atk\n- Scald\n- Toxic\n- Recover\n- Haze\n\nKingdra @ Choice Specs\nAbility: Swift Swim\nEVs: 4 HP / 252 SpA / 252 Spe\nModest Nature\n- Hydro Pump\n- Draco Meteor\n- Hurricane\n- Flash Cannon`},
+  {name:'TRICK ROOM',desc:'SLOW POWERHOUSES',paste:`Hatterene @ Psychic Seed\nAbility: Magic Bounce\nEVs: 252 HP / 4 Def / 252 SpA\nQuiet Nature\nIVs: 0 Atk / 0 Spe\n- Trick Room\n- Psychic\n- Mystical Fire\n- Healing Wish\n\nReuniclus @ Life Orb\nAbility: Magic Guard\nEVs: 192 HP / 64 Def / 252 SpA\nQuiet Nature\nIVs: 0 Atk / 0 Spe\n- Psychic\n- Shadow Ball\n- Focus Blast\n- Trick Room\n\nConkeldurr @ Flame Orb\nAbility: Guts\nEVs: 252 HP / 252 Atk / 4 SpD\nBrave Nature\nIVs: 0 Spe\n- Drain Punch\n- Knock Off\n- Ice Punch\n- Mach Punch\n\nMarowak-Alola @ Thick Club\nAbility: Rock Head\nEVs: 252 HP / 252 Atk / 4 SpD\nBrave Nature\nIVs: 0 Spe\n- Flare Blitz\n- Bonemerang\n- Shadow Bone\n- Swords Dance\n\nDracovish @ Choice Band\nAbility: Strong Jaw\nEVs: 252 HP / 252 Atk / 4 SpD\nBrave Nature\nIVs: 0 Spe\n- Fishious Rend\n- Crunch\n- Outrage\n- Ice Fang\n\nStakataka @ Weakness Policy\nAbility: Beast Boost\nEVs: 252 HP / 252 Atk / 4 SpD\nBrave Nature\nIVs: 0 Spe\n- Trick Room\n- Gyro Ball\n- Rock Slide\n- Superpower`},
+  {name:'SUN TEAM',desc:'DROUGHT OFFENSE',paste:`Torkoal @ Heat Rock\nAbility: Drought\nEVs: 252 HP / 4 SpA / 252 SpD\nCalm Nature\nIVs: 0 Atk\n- Stealth Rock\n- Rapid Spin\n- Lava Plume\n- Yawn\n\nVenusaur @ Life Orb\nAbility: Chlorophyll\nEVs: 4 HP / 252 SpA / 252 Spe\nModest Nature\n- Solar Beam\n- Sludge Bomb\n- Earth Power\n- Sleep Powder\n\nVolcarona @ Charcoal\nAbility: Flame Body\nEVs: 4 HP / 252 SpA / 252 Spe\nTimid Nature\n- Fiery Dance\n- Bug Buzz\n- Quiver Dance\n- Roost\n\nGarchomp @ Rocky Helmet\nAbility: Rough Skin\nEVs: 252 HP / 164 Def / 92 Spe\nImpish Nature\n- Stealth Rock\n- Earthquake\n- Dragon Tail\n- Fire Blast\n\nHeatran @ Air Balloon\nAbility: Flash Fire\nEVs: 252 SpA / 4 SpD / 252 Spe\nTimid Nature\n- Magma Storm\n- Flash Cannon\n- Earth Power\n- Taunt\n\nZeraora @ Choice Band\nAbility: Volt Absorb\nEVs: 252 Atk / 4 SpD / 252 Spe\nJolly Nature\n- Plasma Fists\n- Close Combat\n- Knock Off\n- U-turn`},
 ];
 
-function loadSamples() {
-  const grid = document.getElementById('sampleGrid');
-  grid.innerHTML = SAMPLES.map((s,i)=>`
+function loadSamples(){
+  document.getElementById('sampleGrid').innerHTML=SAMPLES.map((s,i)=>`
     <div class="sample-item" onclick="loadSample(${i})">
       <div>
         <div class="sample-item-name">${s.name}</div>
         <div class="sample-item-desc">${s.desc}</div>
       </div>
-      <span class="sample-load">Load →</span>
+      <span class="sample-arrow">▶</span>
     </div>`).join('');
 }
+function loadSample(i){document.getElementById('pasteInput').value=SAMPLES[i].paste;activatePtab('text');parsePaste();showToast('LOADED: '+SAMPLES[i].name);}
 
-function loadSample(i) {
-  document.getElementById('pasteInput').value = SAMPLES[i].paste;
-  activatePtab('text');
-  parsePaste();
-  showToast(`Loaded: ${SAMPLES[i].name}`);
-}
-
-// ══════════════════════════════════════
-// LISTEN FOR IMPORT FROM INDEX
-// ══════════════════════════════════════
-// (index.html will also read localStorage on load)
-
-// ══════════════════════════════════════
-// KEYBOARD SHORTCUT
-// ══════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if((e.ctrlKey||e.metaKey) && e.key==='Enter') parsePaste();
-});
-
-// ══════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')parsePaste();});
 loadSamples();
+
+// ══════════════════════════════════════════
+// THEME SYNC — reads same localStorage key as index.html
+// ══════════════════════════════════════════
+(function(){
+  const t = localStorage.getItem('pokecardTheme') || 'dark';
+  if(t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+})();
+
 </script>
 </body>
 </html>
