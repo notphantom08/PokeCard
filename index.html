@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PokéCard — Team Card Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b0f;--bg2:#111318;--bg3:#181b24;
+  --surface:#1e2130;--surface2:#252a3a;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#eef0f8;--text2:#8a91b0;--text3:#555f80;
+  --accent:#e84343;--accent2:#ff6b6b;
+  --gold:#f5c842;--blue:#4f9eff;--green:#3ecf8e;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 8px 40px rgba(0,0,0,.6);
+  --font:'Outfit',sans-serif;--mono:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:40px 40px}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 10% 20%,rgba(232,67,67,.07) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 50% at 90% 80%,rgba(79,158,255,.05) 0%,transparent 60%)}
+
+/* ── Header ── */
+header{position:relative;z-index:10;border-bottom:1px solid var(--border);
+  background:rgba(10,11,15,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.hdr{max-width:1440px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-ball{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(160deg,var(--accent) 50%,white 50%);
+  position:relative;flex-shrink:0;box-shadow:0 0 18px rgba(232,67,67,.45);
+  animation:pglow 3s ease-in-out infinite}
+@keyframes pglow{0%,100%{box-shadow:0 0 18px rgba(232,67,67,.4)}50%{box-shadow:0 0 30px rgba(232,67,67,.7)}}
+.logo-ball::before{content:'';position:absolute;left:0;top:calc(50% - 1.5px);right:0;height:3px;background:rgba(0,0,0,.45)}
+.logo-ball::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.4)}
+.logo-text{font-size:20px;font-weight:900;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#fff 30%,var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-text b{color:var(--accent);-webkit-text-fill-color:var(--accent)}
+.hdr-sub{font-size:12px;color:var(--text3);font-weight:500;border-left:1px solid var(--border2);padding-left:16px}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+/* ── Layout ── */
+.layout{position:relative;z-index:1;max-width:1440px;margin:0 auto;
+  padding:26px 28px 80px;display:grid;grid-template-columns:370px 1fr;gap:22px;align-items:start}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
+
+/* ── Panel card ── */
+.pnl{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.pnl-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--bg3)}
+.pnl-hd-ico{width:26px;height:26px;border-radius:7px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.pnl-hd h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2)}
+.pnl-hd-badge{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--surface);color:var(--text3);font-family:var(--mono)}
+.pnl-body{padding:14px}
+
+/* ── Slots ── */
+.slots{display:flex;flex-direction:column;gap:7px}
+.slot{display:flex;align-items:center;gap:11px;padding:9px 13px;border-radius:11px;
+  border:1px solid var(--border);background:var(--bg3);cursor:pointer;
+  transition:all .17s ease;position:relative;overflow:hidden}
+.slot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background .2s;border-radius:3px 0 0 3px}
+.slot:hover{border-color:var(--border2);background:var(--surface);transform:translateX(2px)}
+.slot:hover::before{background:var(--text3)}
+.slot.active{border-color:var(--gold);background:var(--surface)}
+.slot.active::before{background:var(--gold)}
+.slot.filled{border-color:var(--border2)}
+.slot.filled.active{border-color:var(--gold)}
+.slot-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);width:16px;text-align:center;flex-shrink:0}
+.slot-spr{width:50px;height:50px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:9px}
+.slot-spr img{width:46px;height:46px;image-rendering:pixelated;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6))}
+.slot-info{flex:1;min-width:0}
+.slot-name{font-size:13px;font-weight:700;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-meta{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+.slot-del{width:26px;height:26px;border-radius:7px;background:transparent;border:1px solid transparent;
+  color:var(--text3);font-size:17px;line-height:1;cursor:pointer;transition:all .15s;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center}
+.slot-del:hover{background:rgba(232,67,67,.15);border-color:var(--accent);color:var(--accent)}
+
+/* ── Type pill ── */
+.tpill{display:inline-flex;align-items:center;gap:2px;padding:1px 6px 1px 3px;border-radius:20px;
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.9);line-height:16px}
+.tpill img{width:11px;height:11px;image-rendering:pixelated}
+
+/* ── Search ── */
+.srch-wrap{position:relative}
+.srch-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+  color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;
+  padding:11px 36px 11px 40px;outline:none;transition:border-color .2s,box-shadow .2s}
+.srch-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,66,.1)}
+.srch-input::placeholder{color:var(--text3)}
+.srch-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;pointer-events:none;user-select:none}
+.srch-clr{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--surface2);border:none;
+  color:var(--text3);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;
+  display:none;align-items:center;justify-content:center;transition:all .15s}
+.srch-clr.on{display:flex}
+.srch-clr:hover{background:var(--accent);color:#fff}
+.dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:12px;z-index:500;
+  max-height:250px;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.7);display:none}
+.dropdown.open{display:block}
+.dd-item{display:flex;align-items:center;gap:10px;padding:7px 11px;cursor:pointer;
+  transition:background .12s;border-radius:6px;margin:3px}
+.dd-item:hover{background:var(--surface2)}
+.dd-item img{width:40px;height:40px;image-rendering:pixelated;flex-shrink:0;background:var(--surface);border-radius:6px}
+.dd-item-info{flex:1;min-width:0}
+.dd-item-name{font-size:13px;font-weight:700;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-item-id{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.dd-empty{padding:18px;text-align:center;color:var(--text3);font-size:13px;font-weight:600}
+
+/* ── Editor ── */
+.ed-hero{display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:11px;margin-bottom:13px}
+.ed-spr-wrap{width:88px;height:88px;flex-shrink:0;background:var(--surface);border-radius:13px;
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.ed-spr-wrap::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,rgba(255,255,255,.04),transparent 70%)}
+.ed-spr{width:76px;height:76px;image-rendering:pixelated;filter:drop-shadow(0 3px 10px rgba(0,0,0,.7));position:relative;z-index:1}
+.ed-hero-info{flex:1;min-width:0}
+.ed-poke-name{font-size:17px;font-weight:800;text-transform:capitalize;line-height:1.2}
+.ed-poke-id{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+.ed-types{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.ed-placeholder{color:var(--text3);font-size:13px;font-weight:600;text-align:center;padding:14px 0}
+
+/* ── Form elements ── */
+.fg{margin-bottom:11px}
+.fl{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.fin{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;
+  padding:9px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
+.fin:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,158,255,.1)}
+.fin::placeholder{color:var(--text3)}
+select.fin{cursor:pointer;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555f80'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+select.fin option{background:var(--bg2)}
+
+/* ── Stat rows ── */
+.stat-rows{display:flex;flex-direction:column;gap:6px}
+.srow{display:grid;grid-template-columns:30px 1fr 58px;gap:8px;align-items:center}
+.sk{font-family:var(--mono);font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)}
+.strack{height:5px;background:var(--surface);border-radius:3px;overflow:hidden}
+.sfill{height:100%;border-radius:3px;transition:width .35s ease}
+.sval{background:var(--surface);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:5px 7px;outline:none;text-align:center;transition:border-color .15s;width:100%}
+.sval:focus{border-color:var(--blue)}
+
+/* ── Toggle switch ── */
+.opt-row{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:10px;cursor:pointer;user-select:none;transition:all .15s}
+.opt-row:hover{border-color:var(--border2);background:var(--surface)}
+.opt-row input{display:none}
+.osw{width:34px;height:18px;background:var(--surface2);border-radius:9px;position:relative;flex-shrink:0;transition:background .2s}
+.osw::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s}
+.opt-row input:checked~.osw{background:var(--gold)}
+.opt-row input:checked~.osw::after{transform:translateX(16px)}
+.olbl{font-size:11px;font-weight:700;color:var(--text2)}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;border:none;
+  transition:all .17s;text-decoration:none;white-space:nowrap}
+.btn-p{background:linear-gradient(135deg,var(--accent),#c23030);color:#fff;box-shadow:0 4px 20px rgba(232,67,67,.3)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(232,67,67,.5)}
+.btn-s{background:var(--surface2);color:var(--gold);border:1px solid rgba(245,200,66,.2)}
+.btn-s:hover{border-color:var(--gold);background:rgba(245,200,66,.08)}
+.btn-g{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-g:hover{border-color:var(--border2);color:var(--text)}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-ico{padding:9px;width:38px;height:38px;justify-content:center}
+.btn-full{width:100%;justify-content:center}
+
+/* ── Editor tabs ── */
+.ed-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.ed-tab{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;
+  border:1px solid var(--border);color:var(--text3);background:var(--bg3);transition:all .15s}
+.ed-tab.on{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.ed-tab:hover:not(.on){border-color:var(--border2)}
+.ed-sec{display:none}
+.ed-sec.on{display:block}
+.sep{height:1px;background:var(--border);margin:12px 0}
+
+/* ── Preview ── */
+.prev-sticky{position:sticky;top:22px}
+.prev-ctrl{display:flex;gap:8px;margin-bottom:13px;flex-wrap:wrap}
+
+/* ── Team Card ── */
+#cardCanvas{border-radius:16px;overflow:hidden;
+  background:linear-gradient(145deg,#0d1529 0%,#111d3a 40%,#0a1020 100%);
+  position:relative}
+#cardCanvas::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(79,158,255,.12),transparent),
+             radial-gradient(ellipse 60% 40% at 100% 100%,rgba(232,67,67,.06),transparent)}
+#cardCanvas::after{content:'';position:absolute;right:-80px;top:-80px;
+  width:280px;height:280px;border-radius:50%;border:40px solid rgba(255,255,255,.012);pointer-events:none}
+
+.card-inner{position:relative;z-index:1;padding:22px}
+.card-hdr-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.card-name-input{flex:1;background:transparent;border:none;border-bottom:2px solid rgba(245,200,66,.25);
+  color:var(--gold);font-family:var(--mono);font-size:13px;font-weight:700;
+  padding:3px 0;outline:none;letter-spacing:.5px;transition:border-color .2s}
+.card-name-input:focus{border-bottom-color:var(--gold)}
+.card-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-family:var(--mono);white-space:nowrap}
+.poke-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;
+  padding:11px 9px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;overflow:hidden}
+.pcard::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.03),transparent 60%)}
+.pcard-empty{opacity:.2;border-style:dashed;min-height:110px;justify-content:center}
+.pcard-spr{width:66px;height:66px;image-rendering:pixelated;filter:drop-shadow(0 3px 8px rgba(0,0,0,.7));position:relative;z-index:1}
+.pcard-name{font-size:11px;font-weight:800;text-transform:capitalize;text-align:center;color:#fff;line-height:1.2;position:relative;z-index:1}
+.pcard-nick{font-size:9px;color:rgba(255,255,255,.4);font-style:italic;text-align:center;position:relative;z-index:1}
+.pcard-types{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1}
+.pcard-ab{font-size:8px;font-weight:700;color:#7eb8ff;text-align:center;position:relative;z-index:1}
+.pcard-item{font-size:8px;font-weight:700;color:var(--gold);text-align:center;position:relative;z-index:1}
+.pcard-nat{font-size:8px;font-weight:600;color:#c0a8e0;text-align:center;position:relative;z-index:1}
+.pcard-tera{font-size:8px;font-weight:700;text-align:center;position:relative;z-index:1}
+.pcard-moves{width:100%;display:flex;flex-direction:column;gap:2px;position:relative;z-index:1}
+.pcard-mv{font-size:7.5px;font-weight:700;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 6px;text-align:center;color:rgba(255,255,255,.65);text-transform:capitalize}
+.pcard-stats{width:100%;display:flex;flex-direction:column;gap:2px;position:relative;z-index:1}
+.pcs-row{display:flex;align-items:center;gap:3px}
+.pcs-lbl{font-family:var(--mono);font-size:6.5px;font-weight:700;color:rgba(255,255,255,.3);width:22px;flex-shrink:0}
+.pcs-track{flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.pcs-fill{height:100%;border-radius:2px}
+.pcs-val{font-family:var(--mono);font-size:6.5px;font-weight:700;color:rgba(255,255,255,.35);width:17px;text-align:right;flex-shrink:0}
+.pcard-evs{font-size:7px;font-weight:700;color:rgba(255,255,255,.28);text-align:center;position:relative;z-index:1;line-height:1.4}
+.card-foot{margin-top:16px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);
+  display:flex;align-items:center;justify-content:space-between}
+.card-foot-txt{font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.18)}
+.sshot-bar{padding:12px 15px;border-top:1px solid var(--border);background:var(--bg2);
+  display:flex;gap:8px;flex-wrap:wrap;border-radius:0 0 var(--radius) var(--radius)}
+
+/* ── Empty state ── */
+.empty-st{text-align:center;padding:48px 20px}
+.empty-ball{font-size:50px;opacity:.12;margin-bottom:14px}
+.empty-title{font-size:15px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.empty-sub{font-size:12px;color:var(--text3)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:26px;right:26px;z-index:9999;background:var(--surface2);color:var(--text);
+  padding:11px 17px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:var(--shadow);
+  border-left:3px solid var(--gold);transform:translateY(18px);opacity:0;
+  transition:all .26s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.toast.on{transform:translateY(0);opacity:1}
+
+/* ── Spinner ── */
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border2);
+  border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+
+/* move grid */
+.move-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+/* shiny glow on slot sprite */
+.shiny-slot::after{content:'✨';position:absolute;top:1px;right:2px;font-size:9px;z-index:2}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <a class="logo" href="#">
+      <div class="logo-ball"></div>
+      <span class="logo-text">Poké<b>Card</b></span>
+    </a>
+    <span class="hdr-sub">Team Card Builder by NotPhantom08</span>
+    <div class="hdr-right">
+      <a class="btn btn-s btn-sm" href="pokepaste.html" style="text-decoration:none">📋 Import PokéPaste</a>
+      <button class="btn btn-g btn-sm" onclick="randomTeam()">🎲 Random</button>
+      <button class="btn btn-g btn-sm" onclick="clearTeam()">✕ Clear</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ═══ LEFT ═══ -->
+  <div>
+
+    <!-- Team slots -->
+    <div class="pnl" style="margin-bottom:16px">
+      <div class="pnl-hd">
+        <div class="pnl-hd-ico">⚔️</div>
+        <h2>Team Roster</h2>
+        <span class="pnl-hd-badge" id="slotCount">0 / 6</span>
+      </div>
+      <div class="pnl-body">
+        <div class="slots" id="slotsEl"></div>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="pnl" id="edCard" style="display:none;margin-bottom:16px">
+      <div class="pnl-hd">
+        <div class="pnl-hd-ico">✏️</div>
+        <h2 id="edLabel">Edit Pokémon</h2>
+      </div>
+      <div class="pnl-body">
+
+        <!-- Search -->
+        <div class="fg">
+          <div class="fl">Search Pokémon</div>
+          <div class="srch-wrap">
+            <span class="srch-ico">⌕</span>
+            <input id="SI" class="srch-input" type="text"
+              placeholder="Name or #number — all forms included…"
+              autocomplete="off"
+              oninput="onSI(this.value)"
+              onfocus="onSIF()"
+              onblur="setTimeout(closeDrop,180)">
+            <button class="srch-clr" id="SC" onclick="clearSI()">✕</button>
+            <div class="dropdown" id="DD"></div>
+          </div>
+          <div id="listMsg" style="display:none;text-align:center;padding:8px 0;font-size:12px;color:var(--text3)">
+            <span class="spin"></span> Loading full Pokédex…
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <div id="edHero"></div>
+
+        <!-- Tabs -->
+        <div class="ed-tabs" id="edTabs" style="display:none">
+          <span class="ed-tab on" data-t="basics">Basics</span>
+          <span class="ed-tab" data-t="moves">Moves</span>
+          <span class="ed-tab" data-t="stats">EVs / IVs</span>
+        </div>
+
+        <!-- Basics -->
+        <div class="ed-sec on" id="t-basics">
+          <div class="row2" style="margin-bottom:9px">
+            <div><div class="fl">Nickname</div>
+              <input id="fNick" class="fin" type="text" placeholder="Optional" oninput="sf('nickname',this.value)"></div>
+            <div><div class="fl">Gender</div>
+              <select id="fGender" class="fin" onchange="sf('gender',this.value)">
+                <option value="">— None</option>
+                <option value="M">♂ Male</option>
+                <option value="F">♀ Female</option>
+              </select></div>
+          </div>
+          <div class="row2" style="margin-bottom:9px">
+            <div><div class="fl">Ability</div>
+              <input id="fAbility" class="fin" type="text" placeholder="Ability" list="abilityDL" oninput="sf('ability',this.value)">
+              <datalist id="abilityDL"></datalist></div>
+            <div><div class="fl">Held Item</div>
+              <input id="fItem" class="fin" type="text" placeholder="Item" oninput="sf('item',this.value)"></div>
+          </div>
+          <div class="row2" style="margin-bottom:9px">
+            <div><div class="fl">Nature</div>
+              <select id="fNature" class="fin" onchange="sf('nature',this.value)">
+                <option value="">Select</option>
+                <option>Hardy</option><option>Lonely</option><option>Brave</option><option>Adamant</option><option>Naughty</option>
+                <option>Bold</option><option>Docile</option><option>Relaxed</option><option>Impish</option><option>Lax</option>
+                <option>Timid</option><option>Hasty</option><option>Serious</option><option>Jolly</option><option>Naive</option>
+                <option>Modest</option><option>Mild</option><option>Quiet</option><option>Bashful</option><option>Rash</option>
+                <option>Calm</option><option>Gentle</option><option>Sassy</option><option>Careful</option><option>Quirky</option>
+              </select></div>
+            <div><div class="fl">Tera Type</div>
+              <select id="fTera" class="fin" onchange="sf('tera',this.value)">
+                <option value="">None</option>
+                <option>Normal</option><option>Fire</option><option>Water</option><option>Electric</option><option>Grass</option>
+                <option>Ice</option><option>Fighting</option><option>Poison</option><option>Ground</option><option>Flying</option>
+                <option>Psychic</option><option>Bug</option><option>Rock</option><option>Ghost</option><option>Dragon</option>
+                <option>Dark</option><option>Steel</option><option>Fairy</option>
+              </select></div>
+          </div>
+          <label class="opt-row" style="margin-bottom:2px">
+            <input type="checkbox" id="fShiny" onchange="sf('shiny',this.checked)">
+            <div class="osw"></div>
+            <span class="olbl">✨ Shiny form</span>
+          </label>
+        </div>
+
+        <!-- Moves -->
+        <div class="ed-sec" id="t-moves">
+          <div class="move-grid">
+            <div><div class="fl">Move 1</div><input id="mv0" class="fin" type="text" placeholder="—" oninput="sm(0,this.value)"></div>
+            <div><div class="fl">Move 2</div><input id="mv1" class="fin" type="text" placeholder="—" oninput="sm(1,this.value)"></div>
+            <div><div class="fl">Move 3</div><input id="mv2" class="fin" type="text" placeholder="—" oninput="sm(2,this.value)"></div>
+            <div><div class="fl">Move 4</div><input id="mv3" class="fin" type="text" placeholder="—" oninput="sm(3,this.value)"></div>
+          </div>
+        </div>
+
+        <!-- EVs/IVs -->
+        <div class="ed-sec" id="t-stats">
+          <div class="fl" style="margin-bottom:7px">EVs <span style="color:var(--text3);font-size:9px">(0–252, max 510 total)</span></div>
+          <div id="evRows" class="stat-rows" style="margin-bottom:13px"></div>
+          <div class="sep"></div>
+          <div class="fl" style="margin-bottom:7px">IVs <span style="color:var(--text3);font-size:9px">(0–31)</span></div>
+          <div id="ivRows" class="stat-rows"></div>
+        </div>
+
+        <div class="sep"></div>
+        <button class="btn btn-p btn-full" onclick="generateCard()">🖼 Update Card</button>
+      </div>
+    </div>
+
+    <!-- Display options -->
+    <div class="pnl">
+      <div class="pnl-hd">
+        <div class="pnl-hd-ico">🎛</div>
+        <h2>Card Display Options</h2>
+      </div>
+      <div class="pnl-body">
+        <div class="opts-grid" id="optsGrid"></div>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- ═══ RIGHT ═══ -->
+  <div class="prev-sticky">
+    <div class="prev-ctrl">
+      <button class="btn btn-p" onclick="generateCard()">🖼 Preview Card</button>
+      <button class="btn btn-g" onclick="screenshotCard()">📸 Export PNG</button>
+      <button class="btn btn-g btn-ico" onclick="copyCard()" title="Copy to clipboard">📋</button>
+    </div>
+    <div class="pnl" style="overflow:visible">
+      <div id="cardCanvas">
+        <div id="cardInner">
+          <div class="empty-st">
+            <div class="empty-ball">⚪</div>
+            <div class="empty-title">Your team card appears here</div>
+            <div class="empty-sub">Add Pokémon on the left, then hit Preview Card</div>
+          </div>
+        </div>
+      </div>
+      <div class="sshot-bar">
+        <button class="btn btn-p btn-sm" onclick="screenshotCard()">📸 Download PNG</button>
+        <button class="btn btn-g btn-sm" onclick="copyCard()">📋 Copy Image</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--text3);font-weight:600;align-self:center">2× res export</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /layout -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════
+const TC = {Normal:'#A0A29F',Fire:'#FF7C44',Water:'#4D90D5',Electric:'#F2D94E',
+  Grass:'#5DBE62',Ice:'#73CEC0',Fighting:'#CE4069',Poison:'#A55DD2',
+  Ground:'#CE8E6C',Flying:'#89AAE3',Psychic:'#F86481',Bug:'#92A119',
+  Rock:'#C9BC8A',Ghost:'#5269AC',Dragon:'#0B6DC3',Dark:'#595761',Steel:'#5A8EA2',Fairy:'#EF70EF'};
+const SK = ['HP','Atk','Def','SpA','SpD','Spe'];
+const SC2 = {HP:'#FF6B6B',Atk:'#FFA559',Def:'#FFD93D',SpA:'#6BCB77',SpD:'#4D96FF',Spe:'#C77DFF'};
+const SM = {HP:255,Atk:190,Def:230,SpA:194,SpD:230,Spe:200};
+const SA = ['hp','attack','defense','special-attack','special-defense','speed'];
+const NATS = ['Hardy','Lonely','Brave','Adamant','Naughty','Bold','Docile','Relaxed','Impish','Lax',
+  'Timid','Hasty','Serious','Jolly','Naive','Modest','Mild','Quiet','Bashful','Rash',
+  'Calm','Gentle','Sassy','Careful','Quirky'];
+const TYPS = ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground',
+  'Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
+const DOPTS = [
+  {k:'showTypes',  l:'Types',      d:true},
+  {k:'showAbility',l:'Ability',    d:true},
+  {k:'showItem',   l:'Held Item',  d:true},
+  {k:'showNature', l:'Nature',     d:true},
+  {k:'showMoves',  l:'Moves',      d:true},
+  {k:'showStats',  l:'Base Stats', d:true},
+  {k:'showEVs',    l:'EV Spread',  d:false},
+  {k:'showIVs',    l:'IVs',        d:false},
+  {k:'showNick',   l:'Nickname',   d:true},
+  {k:'showGender', l:'Gender',     d:true},
+  {k:'showShiny',  l:'Shiny ✨',   d:false},
+  {k:'showTera',   l:'Tera Type',  d:false},
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let team = Array.from({length:6},(_,i)=>({id:i,mon:null}));
+let activeSlot = null;
+let opts = Object.fromEntries(DOPTS.map(o=>[o.k,o.d]));
+let teamName = 'My Team';
+let allPokemon = []; // [{name,id}]
+let listReady  = false;
+const cache = {}; // name -> data
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const cap = s => s.split(/[\s-]+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+const sprUrl = (id,shiny=false) => {
+  const b='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+  return shiny?`${b}/shiny/${id}.png`:`${b}/${id}.png`;
+};
+const tiUrl = t=>`https://img.pokemondb.net/images/badges/type/${t.toLowerCase()}.png`;
+const tpill = t=>{
+  const c=TC[t]||'#888';
+  return `<span class="tpill" style="background:${c}99;border:1px solid ${c}66">
+    <img src="${tiUrl(t)}" alt="${t}" onerror="this.style.display='none'" style="width:10px;height:10px;image-rendering:pixelated">
+    ${t}</span>`;
+};
+const tiTag = (t,h=13)=>`<img src="${tiUrl(t)}" alt="${t}" style="height:${h}px;image-rendering:pixelated" onerror="this.style.display='none'">`;
+
+// ══════════════════════════════════════════
+// LOAD FULL POKEMON LIST
+// ══════════════════════════════════════════
+async function loadList(){
+  if(listReady) return;
+  document.getElementById('listMsg').style.display='block';
+  try{
+    const r = await fetch('https://pokeapi.co/api/v2/pokemon?limit=10000&offset=0');
+    const d = await r.json();
+    allPokemon = d.results.map(p=>{
+      const parts = p.url.split('/').filter(Boolean);
+      return {name:p.name, id:parseInt(parts[parts.length-1],10)};
+    });
+    listReady = true;
+    toast(`Pokédex loaded — ${allPokemon.length} Pokémon & forms ✅`);
+  }catch(e){ toast('Network error loading Pokédex ❌'); }
+  document.getElementById('listMsg').style.display='none';
+}
+
+// ══════════════════════════════════════════
+// FETCH INDIVIDUAL MON
+// ══════════════════════════════════════════
+async function fetchMon(name){
+  const k=String(name).toLowerCase();
+  if(cache[k]) return cache[k];
+  try{
+    const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${k}`);
+    if(!r.ok) return null;
+    const d = await r.json();
+    const mon = {
+      id:        d.id,
+      name:      d.name,
+      types:     d.types.map(t=>cap(t.type.name)),
+      abilities: d.abilities.map(a=>cap(a.ability.name.replace(/-/g,' '))),
+      baseStats: Object.fromEntries(SK.map((s,i)=>[s,d.stats.find(x=>x.stat.name===SA[i])?.base_stat??0])),
+    };
+    cache[k]=mon;
+    return mon;
+  }catch(e){return null;}
+}
+
+// ══════════════════════════════════════════
+// INIT SLOTS
+// ══════════════════════════════════════════
+function initSlots(){
+  const el=document.getElementById('slotsEl');
+  el.innerHTML='';
+  let n=0;
+  team.forEach((slot,i)=>{
+    if(slot.mon) n++;
+    const div=document.createElement('div');
+    div.className='slot'+(slot.mon?' filled':'')+(activeSlot===i?' active':'');
+    div.onclick=()=>selectSlot(i);
+    if(slot.mon){
+      const m=slot.mon;
+      const shiny=m.shiny&&opts.showShiny;
+      div.innerHTML=`
+        <span class="slot-num">${i+1}</span>
+        <div class="slot-spr${shiny?' shiny-slot':''}">
+          <img src="${sprUrl(m.id,shiny)}" alt="${m.name}" onerror="this.src='${sprUrl(m.id,false)}'">
+        </div>
+        <div class="slot-info">
+          <div class="slot-name">
+            ${m.nickname?`<span style="color:var(--gold)">${m.nickname}</span> <span style="color:var(--text2);font-size:11px">(${cap(m.name)})</span>`:cap(m.name)}
+            ${m.gender==='M'?'<span style="color:#6eb0ff;font-size:11px">♂</span>':m.gender==='F'?'<span style="color:#ff80aa;font-size:11px">♀</span>':''}
+            ${m.shiny?'<span style="font-size:10px">✨</span>':''}
+          </div>
+          <div class="slot-meta">${(m.types||[]).map(tpill).join('')}</div>
+        </div>
+        <button class="slot-del" onclick="event.stopPropagation();removeSlot(${i})">×</button>`;
+    }else{
+      div.innerHTML=`
+        <span class="slot-num">${i+1}</span>
+        <div class="slot-spr">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='17' fill='none' stroke='%23555f80' stroke-width='1.5' stroke-dasharray='4 3'/%3E%3Ctext x='20' y='26' text-anchor='middle' font-size='18' fill='%23555f80'%3E+%3C/text%3E%3C/svg%3E" alt="">
+        </div>
+        <div class="slot-info">
+          <div class="slot-name" style="color:var(--text3)">Empty Slot</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Click to add Pokémon</div>
+        </div>`;
+    }
+    el.appendChild(div);
+  });
+  document.getElementById('slotCount').textContent=`${n} / 6`;
+}
+
+// ══════════════════════════════════════════
+// DISPLAY OPTIONS
+// ══════════════════════════════════════════
+function initOpts(){
+  const el=document.getElementById('optsGrid');
+  el.innerHTML='';
+  DOPTS.forEach(o=>{
+    const lbl=document.createElement('label');
+    lbl.className='opt-row';
+    lbl.innerHTML=`<input type="checkbox" ${opts[o.k]?'checked':''} onchange="togOpt('${o.k}',this.checked)">
+      <div class="osw"></div><span class="olbl">${o.l}</span>`;
+    el.appendChild(lbl);
+  });
+}
+function togOpt(k,v){ opts[k]=v; initSlots(); generateCard(); }
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+document.querySelectorAll('.ed-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.ed-tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.ed-sec').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('t-'+t.dataset.t)?.classList.add('on');
+  });
+});
+
+// ══════════════════════════════════════════
+// SLOT MANAGEMENT
+// ══════════════════════════════════════════
+function selectSlot(i){ activeSlot=i; initSlots(); renderEditor(); }
+function removeSlot(i){
+  team[i].mon=null;
+  if(activeSlot===i) activeSlot=null;
+  initSlots(); renderEditor(); generateCard();
+}
+function clearTeam(){
+  team.forEach(s=>s.mon=null); activeSlot=null;
+  initSlots(); renderEditor(); generateCard(); toast('Team cleared');
+}
+
+// ══════════════════════════════════════════
+// RENDER EDITOR
+// ══════════════════════════════════════════
+function renderEditor(){
+  const card=document.getElementById('edCard');
+  const tabs=document.getElementById('edTabs');
+  if(activeSlot===null){card.style.display='none';return;}
+  card.style.display='block';
+  const m=team[activeSlot].mon;
+  document.getElementById('edLabel').textContent=m?`Editing: ${cap(m.name)}`:`Slot ${activeSlot+1} — Pick a Pokémon`;
+  tabs.style.display=m?'flex':'none';
+
+  // Hero
+  const hero=document.getElementById('edHero');
+  if(m){
+    const shiny=m.shiny&&opts.showShiny;
+    hero.innerHTML=`<div class="ed-hero">
+      <div class="ed-spr-wrap">
+        <img id="edSprImg" class="ed-spr" src="${sprUrl(m.id,shiny)}" alt="${m.name}" onerror="this.src='${sprUrl(m.id,false)}'">
+      </div>
+      <div class="ed-hero-info">
+        <div class="ed-poke-name">${cap(m.name)}</div>
+        <div class="ed-poke-id">#${String(m.id).padStart(4,'0')}</div>
+        <div class="ed-types">${(m.types||[]).map(tpill).join('')}</div>
+      </div>
+    </div>`;
+  }else{
+    hero.innerHTML=`<div class="ed-placeholder">Search and select a Pokémon above</div>`;
+  }
+
+  // Sync fields
+  const g=id=>document.getElementById(id);
+  if(m){
+    g('SI').value=cap(m.name);
+    g('SC').classList.add('on');
+    g('fNick').value   = m.nickname||'';
+    g('fGender').value = m.gender  ||'';
+    g('fAbility').value= m.ability ||'';
+    g('fItem').value   = m.item    ||'';
+    g('fNature').value = m.nature  ||'';
+    g('fTera').value   = m.tera    ||'';
+    g('fShiny').checked= !!m.shiny;
+    // ability list
+    g('abilityDL').innerHTML=(m.knownAbilities||[]).map(a=>`<option value="${a}">`).join('');
+    // moves
+    for(let i=0;i<4;i++) g(`mv${i}`).value=(m.moves||[])[i]||'';
+    // stat rows
+    buildStatRows('evRows','evs',m,0,252);
+    buildStatRows('ivRows','ivs',m,0,31);
+  }else{
+    g('SI').value=''; g('SC').classList.remove('on');
+    ['fNick','fAbility','fItem'].forEach(id=>g(id).value='');
+    ['fGender','fNature','fTera'].forEach(id=>g(id).value='');
+    g('fShiny').checked=false;
+    for(let i=0;i<4;i++) g(`mv${i}`).value='';
+    g('evRows').innerHTML=''; g('ivRows').innerHTML='';
+  }
+}
+
+function buildStatRows(cid,field,m,mn,mx){
+  const el=document.getElementById(cid);
+  el.innerHTML='';
+  SK.forEach(k=>{
+    const v=(m[field]||{})[k]??(field==='ivs'?31:0);
+    const pct=Math.round(((v-mn)/(mx-mn))*100);
+    const col=SC2[k];
+    const row=document.createElement('div');
+    row.className='srow';
+    row.innerHTML=`<span class="sk" style="color:${col}">${k}</span>
+      <div class="strack"><div class="sfill" id="${cid}_b_${k}" style="width:${pct}%;background:${col}"></div></div>
+      <input class="sval" type="number" min="${mn}" max="${mx}" value="${v}"
+        oninput="setStat('${field}','${k}',+this.value,'${cid}',${mn},${mx})">`;
+    el.appendChild(row);
+  });
+}
+
+// ══════════════════════════════════════════
+// FIELD UPDATERS
+// ══════════════════════════════════════════
+function sf(field,val){
+  if(activeSlot===null||!team[activeSlot].mon) return;
+  team[activeSlot].mon[field]=val;
+  if(field==='shiny'){
+    const img=document.getElementById('edSprImg');
+    if(img) img.src=sprUrl(team[activeSlot].mon.id, val&&opts.showShiny);
+  }
+  initSlots(); generateCard();
+}
+function sm(i,val){
+  if(activeSlot===null||!team[activeSlot].mon) return;
+  if(!team[activeSlot].mon.moves) team[activeSlot].mon.moves=[];
+  team[activeSlot].mon.moves[i]=val;
+  generateCard();
+}
+function setStat(field,stat,val,cid,mn,mx){
+  if(activeSlot===null||!team[activeSlot].mon) return;
+  val=Math.max(mn,Math.min(mx,isNaN(val)?mn:val));
+  if(!team[activeSlot].mon[field]) team[activeSlot].mon[field]={};
+  team[activeSlot].mon[field][stat]=val;
+  const bar=document.getElementById(`${cid}_b_${stat}`);
+  if(bar) bar.style.width=Math.round(((val-mn)/(mx-mn))*100)+'%';
+  generateCard();
+}
+
+// ══════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════
+let _st;
+async function onSIF(){
+  if(!listReady) await loadList();
+  const v=document.getElementById('SI').value;
+  if(v.trim()) doSearch(v);
+}
+function onSI(val){
+  clearTimeout(_st);
+  document.getElementById('SC').classList.toggle('on',val.length>0);
+  if(!val.trim()){closeDrop();return;}
+  _st=setTimeout(()=>doSearch(val),130);
+}
+function doSearch(val){
+  const q=val.toLowerCase().trim();
+  if(!allPokemon.length) return;
+  const num=parseInt(q,10);
+  let res;
+  if(!isNaN(num)&&String(num)===q){
+    res=allPokemon.filter(p=>p.id===num).concat(allPokemon.filter(p=>String(p.id).startsWith(q)&&p.id!==num));
+  } else {
+    const sw=allPokemon.filter(p=>p.name.startsWith(q));
+    const co=allPokemon.filter(p=>!p.name.startsWith(q)&&p.name.includes(q));
+    res=[...sw,...co];
+  }
+  showDrop(res.slice(0,16));
+}
+function showDrop(res){
+  const dd=document.getElementById('DD');
+  if(!res.length){
+    dd.innerHTML=`<div class="dd-empty">No Pokémon found</div>`;
+  } else {
+    dd.innerHTML=res.map(p=>`
+      <div class="dd-item" onmousedown="pickMon('${p.name}',${p.id})">
+        <img src="${sprUrl(p.id)}" alt="${p.name}"
+          onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+        <div class="dd-item-info">
+          <div class="dd-item-name">${cap(p.name)}</div>
+          <div class="dd-item-id">#${String(p.id).padStart(4,'0')}</div>
+        </div>
+      </div>`).join('');
+  }
+  dd.classList.add('open');
+}
+function closeDrop(){ document.getElementById('DD').classList.remove('open'); }
+function clearSI(){ document.getElementById('SI').value=''; document.getElementById('SC').classList.remove('on'); closeDrop(); }
+
+// ══════════════════════════════════════════
+// PICK MON  ← the critical function
+// ══════════════════════════════════════════
+async function pickMon(name, id){
+  closeDrop();
+  if(activeSlot===null) return;
+
+  toast('Loading…');
+
+  // Show spinner in hero while loading
+  document.getElementById('edHero').innerHTML=`<div class="ed-hero" style="justify-content:center;gap:10px">
+    <span class="spin"></span>
+    <span style="color:var(--text3);font-size:13px;font-weight:600">Loading ${cap(name)}…</span>
+  </div>`;
+
+  const data = await fetchMon(name);
+  if(!data){ toast('Could not load Pokémon data ❌'); renderEditor(); return; }
+
+  const prev = team[activeSlot].mon || {};
+
+  // Build the full mon object on the slot
+  team[activeSlot].mon = {
+    id:            data.id,
+    name:          data.name,
+    types:         data.types,
+    knownAbilities:data.abilities,
+    ability:       prev.ability || data.abilities[0] || '',
+    baseStats:     data.baseStats,
+    moves:         prev.moves   || [],
+    evs:           prev.evs     || {},
+    ivs:           prev.ivs     || {HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
+    nature:        prev.nature  || '',
+    item:          prev.item    || '',
+    nickname:      '',
+    gender:        '',
+    shiny:         false,
+    tera:          '',
+  };
+
+  initSlots();
+  renderEditor();
+  generateCard();
+  toast(`${cap(name)} added! 🎉`);
+}
+
+// ══════════════════════════════════════════
+// GENERATE CARD
+// ══════════════════════════════════════════
+function generateCard(){
+  const el=document.getElementById('cardInner');
+  const filled=team.filter(s=>s.mon);
+  if(!filled.length){
+    el.innerHTML=`<div class="empty-st">
+      <div class="empty-ball">⚪</div>
+      <div class="empty-title">Your team card appears here</div>
+      <div class="empty-sub">Add Pokémon on the left, then hit Preview Card</div>
+    </div>`;
+    return;
+  }
+
+  const membersHTML=team.map((slot,_)=>{
+    const m=slot.mon;
+    if(!m) return `<div class="pcard pcard-empty"><span style="font-size:26px">＋</span></div>`;
+
+    const shiny=m.shiny&&opts.showShiny;
+    const tc0=m.types&&m.types[0]?TC[m.types[0]]:'#fff';
+
+    // stats
+    let statsH='';
+    if(opts.showStats&&m.baseStats){
+      statsH=`<div class="pcard-stats">`+SK.map(k=>{
+        const v=m.baseStats[k]||0;
+        const mx=SM[k]||255;
+        const pct=Math.min(100,Math.round((v/mx)*100));
+        const col=SC2[k];
+        return `<div class="pcs-row">
+          <span class="pcs-lbl" style="color:${col}55">${k}</span>
+          <div class="pcs-track"><div class="pcs-fill" style="width:${pct}%;background:${col}"></div></div>
+          <span class="pcs-val">${v}</span></div>`;
+      }).join('')+`</div>`;
+    }
+    // EVs
+    let evsH='';
+    if(opts.showEVs&&m.evs){
+      const p=SK.filter(k=>(m.evs[k]||0)>0).map(k=>`${m.evs[k]}${k}`);
+      if(p.length) evsH=`<div class="pcard-evs">${p.join(' / ')}</div>`;
+    }
+    // IVs
+    let ivsH='';
+    if(opts.showIVs&&m.ivs){
+      const b=SK.filter(k=>(m.ivs[k]??31)<31).map(k=>`${m.ivs[k]??31}${k}`);
+      if(b.length) ivsH=`<div class="pcard-evs" style="color:rgba(255,120,120,.45)">${b.join(' / ')}</div>`;
+    }
+    const teraC=m.tera?TC[m.tera]:null;
+
+    return `<div class="pcard" style="border-top:2px solid ${tc0}55">
+      ${m.tera&&opts.showTera?`<div style="position:absolute;top:5px;right:5px;z-index:2">
+        <img src="${tiUrl(m.tera)}" style="height:12px;image-rendering:pixelated" alt="${m.tera}" onerror="this.style.display='none'">
+      </div>`:''}
+      <img class="pcard-spr" src="${sprUrl(m.id,shiny)}" alt="${m.name}" onerror="this.src='${sprUrl(m.id,false)}'">
+      ${opts.showNick&&m.nickname?`<div class="pcard-nick">"${m.nickname}"</div>`:''}
+      <div class="pcard-name">
+        ${cap(m.name)}
+        ${opts.showGender&&m.gender?`<span style="font-size:8px;color:${m.gender==='M'?'#6eb0ff':'#ff80aa'}">${m.gender==='M'?'♂':'♀'}</span>`:''}
+        ${opts.showShiny&&m.shiny?'<span style="font-size:8px">✨</span>':''}
+      </div>
+      ${opts.showTypes&&m.types?`<div class="pcard-types">${m.types.map(t=>`<img src="${tiUrl(t)}" alt="${t}" style="height:13px;image-rendering:pixelated" onerror="this.insertAdjacentHTML('afterend',\`<span class='tpill' style='background:${TC[t]||'#888'}99;font-size:8px'>${t}</span>\`);this.remove()">`).join('')}</div>`:''}
+      ${opts.showAbility&&m.ability?`<div class="pcard-ab">◈ ${m.ability}</div>`:''}
+      ${opts.showItem&&m.item?`<div class="pcard-item">⊛ ${m.item}</div>`:''}
+      ${opts.showNature&&m.nature?`<div class="pcard-nat">⚘ ${m.nature}</div>`:''}
+      ${opts.showTera&&m.tera?`<div class="pcard-tera" style="color:${teraC||'#fff'}">◎ ${m.tera} Tera</div>`:''}
+      ${opts.showMoves&&m.moves?.some(x=>x)?`<div class="pcard-moves">${(m.moves||[]).filter(x=>x).map(mv=>`<div class="pcard-mv">${mv}</div>`).join('')}</div>`:''}
+      ${statsH}${evsH}${ivsH}
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`<div class="card-inner">
+    <div class="card-hdr-row">
+      <span class="card-lbl">Team —</span>
+      <input class="card-name-input" value="${teamName}" onchange="teamName=this.value" placeholder="Name your team">
+    </div>
+    <div class="poke-grid">${membersHTML}</div>
+    <div class="card-foot">
+      <span class="card-foot-txt">pokécard.github.io • ${new Date().getFullYear()}</span>
+      <span class="card-foot-txt">built with ♥</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════
+async function screenshotCard(){
+  const el=document.getElementById('cardCanvas');
+  if(!document.querySelector('.poke-grid')){toast('Generate a card first');return;}
+  toast('Capturing…');
+  try{
+    const c=await html2canvas(el,{backgroundColor:'#0d1529',scale:2,useCORS:true,allowTaint:true,logging:false});
+    const a=document.createElement('a');
+    a.download=`${teamName.replace(/\s+/g,'-')}-team-card.png`;
+    a.href=c.toDataURL('image/png');a.click();
+    toast('Exported! 📸');
+  }catch(e){toast('Export failed — try Copy instead');}
+}
+async function copyCard(){
+  const el=document.getElementById('cardCanvas');
+  if(!document.querySelector('.poke-grid')){toast('Generate a card first');return;}
+  toast('Copying…');
+  try{
+    const c=await html2canvas(el,{backgroundColor:'#0d1529',scale:2,useCORS:true,allowTaint:true,logging:false});
+    c.toBlob(b=>{
+      navigator.clipboard.write([new ClipboardItem({'image/png':b})])
+        .then(()=>toast('Copied! 📋')).catch(()=>toast('Copy failed — use Download'));
+    });
+  }catch(e){toast('Failed');}
+}
+
+// ══════════════════════════════════════════
+// RANDOM TEAM
+// ══════════════════════════════════════════
+async function randomTeam(){
+  if(!listReady){toast('Loading Pokédex first…');await loadList();}
+  toast('Building random team…');
+  const pool=allPokemon.filter(p=>p.id>=1&&p.id<=1025);
+  const picks=[...pool].sort(()=>Math.random()-.5).slice(0,6);
+  team.forEach(s=>s.mon=null); activeSlot=null;
+  for(let i=0;i<6;i++){
+    const p=picks[i];
+    const data=await fetchMon(p.name);
+    if(data){
+      team[i].mon={
+        ...data,knownAbilities:data.abilities,
+        ability:data.abilities[0]||'',
+        moves:[],evs:{},ivs:{HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
+        nature:NATS[Math.floor(Math.random()*NATS.length)],
+        item:'',nickname:'',
+        gender:Math.random()>.5?'M':'F',
+        shiny:Math.random()<.07,
+        tera:TYPS[Math.floor(Math.random()*TYPS.length)],
+      };
+    }
+  }
+  initSlots(); renderEditor(); generateCard(); toast('Random team ready! 🎲');
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let _tt;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'),2800);
+}
+
+// ══════════════════════════════════════════
+// POKEPASTE IMPORT (from pokepaste.html via localStorage)
+// ══════════════════════════════════════════
+function checkImport(){
+  try{
+    const raw=localStorage.getItem('pokecardTeam');
+    const ts =localStorage.getItem('pokecardImported');
+    if(!raw||!ts) return;
+    // Only auto-import if saved within last 5 minutes
+    if(Date.now()-parseInt(ts,10)>5*60*1000) return;
+    const imported=JSON.parse(raw);
+    if(!Array.isArray(imported)||!imported.length) return;
+    imported.forEach((slot,i)=>{ if(i<6) team[i]=slot; });
+    localStorage.removeItem('pokecardTeam');
+    localStorage.removeItem('pokecardImported');
+    initSlots();
+    generateCard();
+    toast('PokéPaste team imported! 🎉');
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+initSlots();
+initOpts();
+loadList();
+checkImport(); // pick up any team sent from pokepaste.html
+</script>
+</body>
+</html>

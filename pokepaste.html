@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PokéCard — PokéPaste Importer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b0f;--bg2:#111318;--bg3:#181b24;
+  --surface:#1e2130;--surface2:#252a3a;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#eef0f8;--text2:#8a91b0;--text3:#555f80;
+  --accent:#e84343;--gold:#f5c842;--blue:#4f9eff;--green:#3ecf8e;
+  --radius:14px;
+  --font:'Outfit',sans-serif;--mono:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:40px 40px}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 10% 20%,rgba(232,67,67,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 90% 80%,rgba(79,158,255,.05) 0%,transparent 60%)}
+
+/* ── Header (shared) ── */
+header{position:relative;z-index:10;border-bottom:1px solid var(--border);
+  background:rgba(10,11,15,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.hdr{max-width:1200px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-ball{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(160deg,var(--accent) 50%,white 50%);
+  position:relative;flex-shrink:0;box-shadow:0 0 18px rgba(232,67,67,.45);
+  animation:pglow 3s ease-in-out infinite}
+@keyframes pglow{0%,100%{box-shadow:0 0 18px rgba(232,67,67,.4)}50%{box-shadow:0 0 30px rgba(232,67,67,.7)}}
+.logo-ball::before{content:'';position:absolute;left:0;top:calc(50% - 1.5px);right:0;height:3px;background:rgba(0,0,0,.45)}
+.logo-ball::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.4)}
+.logo-text{font-size:20px;font-weight:900;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#fff 30%,var(--text2));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.logo-text b{color:var(--accent);-webkit-text-fill-color:var(--accent)}
+.hdr-sep{font-size:12px;color:var(--text3);font-weight:500;border-left:1px solid var(--border2);padding-left:16px}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn-hdr{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;
+  font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;border:none;
+  transition:all .17s;text-decoration:none;white-space:nowrap;
+  background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-hdr:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── Main layout ── */
+.main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:36px 28px 80px}
+
+/* ── Page title ── */
+.page-title{margin-bottom:32px}
+.page-title h1{font-size:28px;font-weight:900;letter-spacing:-.5px;margin-bottom:6px}
+.page-title h1 span{color:var(--gold)}
+.page-title p{font-size:14px;color:var(--text3);font-weight:500;line-height:1.6}
+.page-title a{color:var(--blue);text-decoration:none}
+.page-title a:hover{text-decoration:underline}
+
+/* ── Two column layout ── */
+.cols{display:grid;grid-template-columns:1fr 420px;gap:22px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+
+/* ── Panel ── */
+.pnl{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.pnl-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--bg3)}
+.pnl-hd-ico{width:26px;height:26px;border-radius:7px;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.pnl-hd h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2)}
+.pnl-hd-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.pnl-body{padding:16px}
+
+/* ── Textarea ── */
+.paste-area{
+  width:100%;min-height:340px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:11px;
+  color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.7;
+  padding:14px 16px;outline:none;resize:vertical;
+  transition:border-color .2s,box-shadow .2s;
+}
+.paste-area:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,66,.09)}
+.paste-area::placeholder{color:var(--text3);font-family:var(--mono)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;border:none;
+  transition:all .17s;text-decoration:none;white-space:nowrap}
+.btn-p{background:linear-gradient(135deg,var(--accent),#c23030);color:#fff;box-shadow:0 4px 20px rgba(232,67,67,.3)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(232,67,67,.5)}
+.btn-p:active{transform:translateY(0)}
+.btn-g{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-g:hover{border-color:var(--border2);color:var(--text)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#d4a800);color:#000;box-shadow:0 4px 20px rgba(245,200,66,.25)}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(245,200,66,.4)}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-full{width:100%;justify-content:center}
+
+/* ── Format helper ── */
+.format-box{background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  padding:14px 16px;font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--text2)}
+.format-line{display:block;white-space:pre}
+.fmt-name{color:var(--gold)}
+.fmt-label{color:var(--text3)}
+.fmt-val{color:var(--green)}
+.fmt-move{color:var(--blue)}
+.fmt-comment{color:var(--text3);font-style:italic}
+
+/* ── Preview cards ── */
+.preview-grid{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pmon-card{
+  display:flex;align-items:center;gap:13px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;position:relative;overflow:hidden;
+  transition:border-color .2s;
+}
+.pmon-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.pmon-card.valid{border-color:rgba(62,207,142,.2)}
+.pmon-card.valid::before{background:var(--green)}
+.pmon-card.invalid{border-color:rgba(232,67,67,.2)}
+.pmon-card.invalid::before{background:var(--accent)}
+.pmon-spr{width:54px;height:54px;flex-shrink:0;image-rendering:pixelated;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));background:var(--bg3);border-radius:9px}
+.pmon-info{flex:1;min-width:0}
+.pmon-name{font-size:14px;font-weight:800;text-transform:capitalize;margin-bottom:3px}
+.pmon-nick{font-size:11px;color:var(--text3);font-style:italic;margin-bottom:3px}
+.pmon-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.pmon-detail{font-size:11px;color:var(--text3);font-weight:600}
+.pmon-detail span{color:var(--text2)}
+.pmon-moves{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.pmon-move{font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;
+  background:rgba(79,158,255,.12);color:var(--blue);border:1px solid rgba(79,158,255,.2)}
+.pmon-badge{position:absolute;top:10px;right:12px;font-size:9px;font-weight:700;
+  padding:2px 7px;border-radius:20px;font-family:var(--mono)}
+.badge-ok{background:rgba(62,207,142,.15);color:var(--green)}
+.badge-err{background:rgba(232,67,67,.15);color:var(--accent)}
+.tpill{display:inline-flex;align-items:center;gap:2px;padding:1px 6px 1px 3px;border-radius:20px;
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+  color:rgba(255,255,255,.9);line-height:16px}
+.tpill img{width:10px;height:10px;image-rendering:pixelated}
+
+/* ── Status bar ── */
+.status-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:700}
+.status-bar.success{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.2);color:var(--green)}
+.status-bar.error{background:rgba(232,67,67,.1);border:1px solid rgba(232,67,67,.2);color:var(--accent)}
+.status-bar.info{background:rgba(79,158,255,.08);border:1px solid rgba(79,158,255,.15);color:var(--blue)}
+.status-bar.warning{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:var(--gold)}
+
+/* ── Steps ── */
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:1px}
+.step-content{flex:1}
+.step-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.step-desc{font-size:12px;color:var(--text3);line-height:1.5}
+.step-desc a{color:var(--blue);text-decoration:none}
+.step-desc a:hover{text-decoration:underline}
+
+/* ── Tabs on paste panel ── */
+.ptabs{display:flex;gap:3px;padding:10px 16px 0;background:var(--bg3);border-bottom:1px solid var(--border)}
+.ptab{padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);
+  border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px}
+.ptab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.ptab:hover:not(.on){color:var(--text2)}
+.ptab-body{display:none;padding:16px}
+.ptab-body.on{display:block}
+
+/* ── Spinner ── */
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border2);
+  border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:26px;right:26px;z-index:9999;background:var(--surface2);color:var(--text);
+  padding:11px 17px;border-radius:12px;font-size:13px;font-weight:700;
+  box-shadow:0 8px 40px rgba(0,0,0,.6);border-left:3px solid var(--gold);
+  transform:translateY(18px);opacity:0;transition:all .26s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.toast.on{transform:translateY(0);opacity:1}
+
+/* ── Sep ── */
+.sep{height:1px;background:var(--border);margin:14px 0}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+
+/* ── Import success overlay ── */
+.import-success{
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px 20px;gap:14px;
+}
+.import-success.show{display:flex}
+.success-ball{font-size:52px;animation:bounce .6s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.success-title{font-size:20px;font-weight:900}
+.success-sub{font-size:13px;color:var(--text3);max-width:320px;line-height:1.6}
+
+/* ── Sample teams ── */
+.sample-grid{display:flex;flex-direction:column;gap:6px}
+.sample-item{display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  cursor:pointer;transition:all .15s}
+.sample-item:hover{border-color:var(--border2);background:var(--surface2)}
+.sample-item-name{font-size:13px;font-weight:700;flex:1}
+.sample-item-desc{font-size:11px;color:var(--text3)}
+.sample-load{font-size:11px;font-weight:700;color:var(--gold);opacity:0;transition:opacity .15s}
+.sample-item:hover .sample-load{opacity:1}
+
+/* ── URL paste ── */
+.url-row{display:flex;gap:8px}
+.fin{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:9px;
+  color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;
+  padding:10px 13px;outline:none;transition:border-color .2s}
+.fin:focus{border-color:var(--gold)}
+.fin::placeholder{color:var(--text3)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <a class="logo" href="index.html">
+      <div class="logo-ball"></div>
+      <span class="logo-text">Poké<b>Card</b></span>
+    </a>
+    <span class="hdr-sep">PokéPaste Importer</span>
+    <div class="hdr-right">
+      <a class="btn-hdr" href="index.html">← Back to Card Builder</a>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="page-title">
+    <h1>Import from <span>Pokémon Showdown</span></h1>
+    <p>
+      Paste your team export from <a href="https://play.pokemonshowdown.com/teambuilder" target="_blank">Pokémon Showdown Teambuilder</a>
+      or any <a href="https://pokepast.es" target="_blank">PokéPaste</a> link — we'll parse it instantly and load it into your card.
+    </p>
+  </div>
+
+  <div class="cols">
+
+    <!-- ═══ LEFT: Paste input ═══ -->
+    <div>
+      <div class="pnl" style="margin-bottom:16px">
+
+        <!-- Tabs -->
+        <div class="ptabs">
+          <span class="ptab on" data-t="text">📋 Paste Text</span>
+          <span class="ptab" data-t="url">🔗 PokéPaste URL</span>
+          <span class="ptab" data-t="samples">⭐ Sample Teams</span>
+        </div>
+
+        <!-- Paste text tab -->
+        <div class="ptab-body on" id="t-text">
+          <textarea id="pasteInput" class="paste-area"
+            placeholder="Paste your Showdown export here…
+
+Example:
+Garchomp @ Rocky Helmet
+Ability: Rough Skin
+Tera Type: Dragon
+EVs: 252 HP / 164 Def / 92 Spe
+Impish Nature
+- Stealth Rock
+- Earthquake
+- Dragon Tail
+- Fire Blast
+
+Dragapult @ Choice Specs
+Ability: Clear Body
+Tera Type: Fire
+…"></textarea>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-p" onclick="parsePaste()">⚡ Parse Team</button>
+            <button class="btn btn-g btn-sm" onclick="clearPaste()">✕ Clear</button>
+            <button class="btn btn-g btn-sm" onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
+          </div>
+        </div>
+
+        <!-- URL tab -->
+        <div class="ptab-body" id="t-url">
+          <div style="margin-bottom:12px">
+            <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">
+              Enter a <strong style="color:var(--text2)">pokepast.es</strong> or <strong style="color:var(--text2)">play.pokemonshowdown.com</strong> share URL
+            </div>
+            <div class="url-row">
+              <input id="urlInput" class="fin" type="url" placeholder="https://pokepast.es/abc123…">
+              <button class="btn btn-p" onclick="fetchURL()">Fetch</button>
+            </div>
+          </div>
+          <div id="urlStatus"></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5">
+            💡 <strong style="color:var(--text2)">Tip:</strong> From Showdown Teambuilder, click Export → copy the text, then use the Paste Text tab.
+            PokéPaste URLs (pokepast.es) are fetched via CORS proxy.
+          </div>
+        </div>
+
+        <!-- Samples tab -->
+        <div class="ptab-body" id="t-samples">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:600">
+            Click any sample team to load it instantly:
+          </div>
+          <div class="sample-grid" id="sampleGrid"></div>
+        </div>
+
+      </div>
+
+      <!-- Status -->
+      <div id="statusBar" style="display:none"></div>
+
+      <!-- Preview -->
+      <div id="previewSection" style="display:none">
+        <div class="pnl">
+          <div class="pnl-hd">
+            <div class="pnl-hd-ico">👁</div>
+            <h2 id="previewTitle">Parsed Team</h2>
+            <div class="pnl-hd-right">
+              <span id="parseCount" style="font-family:var(--mono);font-size:10px;color:var(--text3)"></span>
+            </div>
+          </div>
+          <div class="pnl-body">
+            <div id="previewGrid" class="preview-grid"></div>
+            <div class="sep"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-gold btn-full" onclick="importTeam()">
+                🚀 Import to Card Builder
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success state -->
+      <div class="pnl" id="successPane" style="display:none">
+        <div class="pnl-body">
+          <div class="import-success show">
+            <div class="success-ball">✅</div>
+            <div class="success-title">Team Imported!</div>
+            <div class="success-sub">Your team has been sent to the Card Builder. Head back to preview and export your card.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+              <a class="btn btn-p" href="index.html">🖼 Open Card Builder</a>
+              <button class="btn btn-g" onclick="resetImport()">⟵ Import Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RIGHT: Guide ═══ -->
+    <div>
+      <div class="pnl" style="margin-bottom:16px">
+        <div class="pnl-hd">
+          <div class="pnl-hd-ico">📖</div>
+          <h2>How to Export from Showdown</h2>
+        </div>
+        <div class="pnl-body">
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <div class="step-title">Open Teambuilder</div>
+                <div class="step-desc">Go to <a href="https://play.pokemonshowdown.com/teambuilder" target="_blank">play.pokemonshowdown.com/teambuilder</a> and open or build your team.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <div class="step-title">Click "Export"</div>
+                <div class="step-desc">Click the <strong style="color:var(--gold)">Export</strong> button on your team. This copies the Showdown format text to your clipboard.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <div class="step-title">Paste Here</div>
+                <div class="step-desc">Click <strong style="color:var(--gold)">Paste from Clipboard</strong> or press <kbd style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:10px">Ctrl+V</kbd> in the text area, then hit <strong style="color:var(--accent)">Parse Team</strong>.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <div class="step-title">Import & Build</div>
+                <div class="step-desc">Review the parsed Pokémon, then click <strong style="color:var(--gold)">Import to Card Builder</strong> to load them into your card.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pnl">
+        <div class="pnl-hd">
+          <div class="pnl-hd-ico">📄</div>
+          <h2>Showdown Format Reference</h2>
+        </div>
+        <div class="pnl-body">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:600">
+            Each Pokémon block looks like this:
+          </div>
+          <div class="format-box">
+<span class="format-line"><span class="fmt-name">Garchomp</span> (M) @ <span class="fmt-val">Rocky Helmet</span></span>
+<span class="format-line"><span class="fmt-label">Ability: </span><span class="fmt-val">Rough Skin</span></span>
+<span class="format-line"><span class="fmt-label">Tera Type: </span><span class="fmt-val">Dragon</span></span>
+<span class="format-line"><span class="fmt-label">EVs: </span><span class="fmt-val">252 HP / 164 Def / 92 Spe</span></span>
+<span class="format-line"><span class="fmt-val">Impish</span> <span class="fmt-label">Nature</span></span>
+<span class="format-line"><span class="fmt-label">IVs: </span><span class="fmt-val">0 Atk</span></span>
+<span class="format-line"><span class="fmt-move">- Stealth Rock</span></span>
+<span class="format-line"><span class="fmt-move">- Earthquake</span></span>
+<span class="format-line"><span class="fmt-move">- Dragon Tail</span></span>
+<span class="format-line"><span class="fmt-move">- Fire Blast</span></span>
+          </div>
+          <div class="sep"></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
+              <strong style="color:var(--text2)">Nickname support:</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">Nickname (Species) @ Item</code>
+            </div>
+            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
+              <strong style="color:var(--text2)">Shiny support:</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">Shiny: Yes</code> line
+            </div>
+            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
+              <strong style="color:var(--text2)">Gender:</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">(M)</code> or <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:4px">(F)</code> after name
+            </div>
+            <div style="font-size:11px;color:var(--text3);font-weight:600;line-height:1.6">
+              <strong style="color:var(--text2)">Separate Pokémon</strong> with a blank line
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// TYPE DATA
+// ══════════════════════════════════════
+const TC = {Normal:'#A0A29F',Fire:'#FF7C44',Water:'#4D90D5',Electric:'#F2D94E',
+  Grass:'#5DBE62',Ice:'#73CEC0',Fighting:'#CE4069',Poison:'#A55DD2',
+  Ground:'#CE8E6C',Flying:'#89AAE3',Psychic:'#F86481',Bug:'#92A119',
+  Rock:'#C9BC8A',Ghost:'#5269AC',Dragon:'#0B6DC3',Dark:'#595761',Steel:'#5A8EA2',Fairy:'#EF70EF'};
+
+const STAT_MAP = {
+  'hp':'HP','atk':'Atk','def':'Def','spa':'SpA','spd':'SpD','spe':'Spe',
+  'attack':'Atk','defense':'Def','specialattack':'SpA','specialdefense':'SpD','speed':'Spe'
+};
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+const cap = s => s.split(/[\s-]+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+const sprUrl = (name,shiny=false) => {
+  // Convert showdown name to PokeAPI format for sprite lookup
+  const n = toApiName(name);
+  const b='https://play.pokemonshowdown.com/sprites/gen5';
+  if(shiny) return `https://play.pokemonshowdown.com/sprites/gen5-shiny/${n}.png`;
+  return `${b}/${n}.png`;
+};
+const tiUrl = t=>`https://img.pokemondb.net/images/badges/type/${t.toLowerCase()}.png`;
+const tpill = t=>{
+  const c=TC[t]||'#888';
+  return `<span class="tpill" style="background:${c}99;border:1px solid ${c}66">
+    <img src="${tiUrl(t)}" alt="${t}" onerror="this.style.display='none'" style="width:10px;height:10px;image-rendering:pixelated">
+    ${t}</span>`;
+};
+
+// Convert Showdown name to API-compatible format
+function toApiName(name) {
+  return name.toLowerCase()
+    .replace(/\s+/g,'-')
+    .replace(/['.]/g,'')
+    .replace(/é/g,'e')
+    .replace(/♀/g,'-f')
+    .replace(/♂/g,'-m');
+}
+
+// Normalize stat key from EV/IV strings like "Spe", "SpA", "HP"
+function normStat(s) {
+  const k = s.toLowerCase().replace(/[^a-z]/g,'');
+  return STAT_MAP[k] || s;
+}
+
+// ══════════════════════════════════════
+// SHOWDOWN FORMAT PARSER
+// ══════════════════════════════════════
+function parseShowdown(text) {
+  // Split into blocks by blank lines
+  const blocks = text.trim().split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  const mons = [];
+  const errors = [];
+
+  blocks.forEach((block, bi) => {
+    const lines = block.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!lines.length) return;
+
+    const mon = {
+      nickname: '',
+      name: '',
+      item: '',
+      ability: '',
+      tera: '',
+      nature: '',
+      shiny: false,
+      gender: '',
+      moves: [],
+      evs: {HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
+      ivs: {HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
+      level: 100,
+      rawName: '',
+      parseError: null,
+    };
+
+    // ── Line 1: Name (Nickname) @ Item OR Name @ Item ──
+    const firstLine = lines[0];
+
+    // Extract gender from parentheses like (M) or (F) before @
+    let fl = firstLine;
+    const genderMatch = fl.match(/\(([MF])\)/);
+    if(genderMatch) {
+      mon.gender = genderMatch[1];
+      fl = fl.replace(/\s*\([MF]\)/, '');
+    }
+
+    // Split on @ for item
+    const atParts = fl.split('@');
+    if(atParts.length >= 2) {
+      mon.item = atParts.slice(1).join('@').trim();
+    }
+    const namePart = atParts[0].trim();
+
+    // Check if nickname: "Nickname (Species)"
+    const nickMatch = namePart.match(/^(.+?)\s+\((.+?)\)\s*$/);
+    if(nickMatch) {
+      mon.nickname = nickMatch[1].trim();
+      mon.name = nickMatch[2].trim();
+    } else {
+      mon.name = namePart;
+    }
+    mon.rawName = mon.name;
+
+    if(!mon.name) {
+      errors.push(`Block ${bi+1}: Could not parse Pokémon name`);
+      return;
+    }
+
+    // ── Remaining lines ──
+    for(let i=1;i<lines.length;i++){
+      const line = lines[i];
+
+      // Move line
+      if(line.startsWith('- ')) {
+        const move = line.slice(2).trim().split('/')[0].trim(); // strip hidden power type
+        if(mon.moves.length < 4) mon.moves.push(move);
+        continue;
+      }
+
+      // Ability
+      if(/^ability\s*:/i.test(line)) {
+        mon.ability = line.split(':').slice(1).join(':').trim();
+        continue;
+      }
+
+      // Tera Type
+      if(/^tera\s*type\s*:/i.test(line)) {
+        mon.tera = line.split(':').slice(1).join(':').trim();
+        continue;
+      }
+
+      // Shiny
+      if(/^shiny\s*:\s*yes/i.test(line)) {
+        mon.shiny = true;
+        continue;
+      }
+
+      // Level
+      if(/^level\s*:/i.test(line)) {
+        mon.level = parseInt(line.split(':')[1]) || 100;
+        continue;
+      }
+
+      // EVs: 252 HP / 4 Def / 252 Spe
+      if(/^evs\s*:/i.test(line)) {
+        const evStr = line.split(':').slice(1).join(':').trim();
+        evStr.split('/').forEach(part => {
+          const m = part.trim().match(/^(\d+)\s+(.+)$/);
+          if(m) {
+            const statKey = normStat(m[2].trim());
+            if(statKey in mon.evs) mon.evs[statKey] = parseInt(m[1]);
+          }
+        });
+        continue;
+      }
+
+      // IVs: 0 Atk
+      if(/^ivs\s*:/i.test(line)) {
+        const ivStr = line.split(':').slice(1).join(':').trim();
+        ivStr.split('/').forEach(part => {
+          const m = part.trim().match(/^(\d+)\s+(.+)$/);
+          if(m) {
+            const statKey = normStat(m[2].trim());
+            if(statKey in mon.ivs) mon.ivs[statKey] = parseInt(m[1]);
+          }
+        });
+        continue;
+      }
+
+      // Nature: "Adamant Nature" or "Adamant nature"
+      const natMatch = line.match(/^(\w+)\s+nature/i);
+      if(natMatch) {
+        mon.nature = cap(natMatch[1]);
+        continue;
+      }
+
+      // Happiness
+      if(/^happiness\s*:/i.test(line)) continue;
+    }
+
+    // Convert name to API-compatible slug for lookup
+    mon.apiName = toApiName(mon.name);
+    mons.push(mon);
+  });
+
+  return {mons, errors};
+}
+
+// ══════════════════════════════════════
+// TYPE LOOKUP CACHE (via PokeAPI)
+// ══════════════════════════════════════
+const typeCache = {};
+
+async function getTypes(apiName) {
+  if(typeCache[apiName]) return typeCache[apiName];
+  try {
+    const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${apiName}`);
+    if(!r.ok) {
+      // Try alternate names (e.g. "mr-mime" vs "mr. mime")
+      typeCache[apiName] = null;
+      return null;
+    }
+    const d = await r.json();
+    const types = d.types.map(t=>cap(t.type.name));
+    const abilities = d.abilities.map(a=>cap(a.ability.name.replace(/-/g,' ')));
+    const baseStats = {};
+    const SK=['HP','Atk','Def','SpA','SpD','Spe'];
+    const SA=['hp','attack','defense','special-attack','special-defense','speed'];
+    SK.forEach((s,i)=>{ baseStats[s]=d.stats.find(x=>x.stat.name===SA[i])?.base_stat??0; });
+    const result = {id:d.id, types, abilities, baseStats};
+    typeCache[apiName] = result;
+    return result;
+  } catch(e) { typeCache[apiName]=null; return null; }
+}
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let parsedMons = [];
+
+// ══════════════════════════════════════
+// PARSE & PREVIEW
+// ══════════════════════════════════════
+async function parsePaste() {
+  const text = document.getElementById('pasteInput').value.trim();
+  if(!text) { showStatus('error','⚠ Paste some Showdown export text first.'); return; }
+
+  showStatus('info','<span class="spin"></span> Parsing team…');
+  document.getElementById('previewSection').style.display='none';
+  document.getElementById('successPane').style.display='none';
+
+  const {mons, errors} = parseShowdown(text);
+
+  if(!mons.length) {
+    showStatus('error','❌ Could not parse any Pokémon. Make sure the format is correct (see guide on the right).');
+    return;
+  }
+
+  if(mons.length > 6) {
+    showStatus('warning',`⚠ Found ${mons.length} Pokémon — only the first 6 will be imported.`);
+    mons.splice(6);
+  }
+
+  // Fetch types for all mons in parallel
+  showStatus('info',`<span class="spin"></span> Looking up data for ${mons.length} Pokémon…`);
+  await Promise.all(mons.map(async m => {
+    const data = await getTypes(m.apiName);
+    if(data) {
+      m.id = data.id;
+      m.types = data.types;
+      m.knownAbilities = data.abilities;
+      m.baseStats = data.baseStats;
+      if(!m.ability && data.abilities.length) m.ability = data.abilities[0];
+      m.resolved = true;
+    } else {
+      m.resolved = false;
+      m.types = [];
+    }
+  }));
+
+  parsedMons = mons;
+  renderPreview(mons, errors);
+}
+
+function renderPreview(mons, errors) {
+  const ok = mons.filter(m=>m.resolved).length;
+  const bad = mons.filter(m=>!m.resolved).length;
+
+  if(bad === 0) {
+    showStatus('success',`✅ ${ok} Pokémon parsed successfully — ready to import!`);
+  } else {
+    showStatus('warning',`⚠ ${ok} resolved, ${bad} could not be found (may still import with limited data).`);
+  }
+
+  document.getElementById('parseCount').textContent = `${mons.length} Pokémon`;
+  document.getElementById('previewTitle').textContent = `Parsed Team (${mons.length})`;
+
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = mons.map((m,i) => {
+    const sprName = m.apiName;
+    const sprSrc = m.shiny
+      ? `https://play.pokemonshowdown.com/sprites/gen5-shiny/${sprName}.png`
+      : `https://play.pokemonshowdown.com/sprites/gen5/${sprName}.png`;
+    const fallback = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${m.id||0}.png`;
+
+    const evParts = ['HP','Atk','Def','SpA','SpD','Spe'].filter(k=>(m.evs||{})[k]>0).map(k=>`${m.evs[k]}${k}`);
+    const evStr = evParts.join(' / ');
+
+    return `<div class="pmon-card ${m.resolved?'valid':'invalid'}">
+      <img class="pmon-spr" src="${sprSrc}" alt="${m.name}"
+        onerror="this.src='${fallback}'"
+        style="image-rendering:pixelated">
+      <div class="pmon-info">
+        ${m.nickname?`<div class="pmon-nick">"${m.nickname}"</div>`:''}
+        <div class="pmon-name">
+          ${cap(m.name)}
+          ${m.shiny?'<span style="font-size:11px">✨</span>':''}
+          ${m.gender==='M'?'<span style="font-size:11px;color:#6eb0ff">♂</span>':m.gender==='F'?'<span style="font-size:11px;color:#ff80aa">♀</span>':''}
+        </div>
+        <div class="pmon-meta">
+          ${(m.types||[]).map(tpill).join('')}
+          ${m.tera?`<span class="tpill" style="background:${TC[m.tera]||'#888'}55;border:1px solid ${TC[m.tera]||'#888'}44">◎ ${m.tera}</span>`:''}
+        </div>
+        ${m.ability?`<div class="pmon-detail">Ability: <span>${m.ability}</span></div>`:''}
+        ${m.item?`<div class="pmon-detail">Item: <span>${m.item}</span></div>`:''}
+        ${m.nature?`<div class="pmon-detail">Nature: <span>${m.nature}</span></div>`:''}
+        ${evStr?`<div class="pmon-detail">EVs: <span style="font-size:10px;font-family:var(--mono)">${evStr}</span></div>`:''}
+        ${m.moves.length?`<div class="pmon-moves">${m.moves.map(mv=>`<span class="pmon-move">${mv}</span>`).join('')}</div>`:''}
+      </div>
+      <span class="pmon-badge ${m.resolved?'badge-ok':'badge-err'}">${m.resolved?'✓ OK':'? Unknown'}</span>
+    </div>`;
+  }).join('');
+
+  if(errors.length) {
+    grid.innerHTML += `<div style="font-size:11px;color:var(--accent);padding:8px 0">
+      ${errors.map(e=>`<div>⚠ ${e}</div>`).join('')}</div>`;
+  }
+
+  document.getElementById('previewSection').style.display='block';
+}
+
+// ══════════════════════════════════════
+// IMPORT TO CARD BUILDER
+// ══════════════════════════════════════
+function importTeam() {
+  if(!parsedMons.length) { showToast('No team to import'); return; }
+
+  // Build team array compatible with index.html format
+  const teamData = Array.from({length:6},(_,i)=>({
+    id: i,
+    mon: parsedMons[i] ? buildMonObj(parsedMons[i]) : null
+  }));
+
+  try {
+    localStorage.setItem('pokecardTeam', JSON.stringify(teamData));
+    localStorage.setItem('pokecardImported', Date.now().toString());
+
+    // Show success state
+    document.getElementById('previewSection').style.display='none';
+    document.getElementById('statusBar').style.display='none';
+    document.getElementById('successPane').style.display='block';
+    showToast('Team imported! 🎉');
+  } catch(e) {
+    showStatus('error','❌ Could not save team — localStorage may be unavailable. Try opening index.html directly.');
+  }
+}
+
+function buildMonObj(m) {
+  return {
+    id:             m.id || null,
+    name:           m.apiName,
+    types:          m.types || [],
+    knownAbilities: m.knownAbilities || [],
+    ability:        m.ability || '',
+    baseStats:      m.baseStats || {HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
+    moves:          m.moves || [],
+    evs:            m.evs  || {HP:0,Atk:0,Def:0,SpA:0,SpD:0,Spe:0},
+    ivs:            m.ivs  || {HP:31,Atk:31,Def:31,SpA:31,SpD:31,Spe:31},
+    nature:         m.nature || '',
+    item:           m.item || '',
+    nickname:       m.nickname || '',
+    gender:         m.gender || '',
+    shiny:          m.shiny || false,
+    tera:           m.tera || '',
+  };
+}
+
+function resetImport() {
+  parsedMons = [];
+  document.getElementById('successPane').style.display='none';
+  document.getElementById('previewSection').style.display='none';
+  document.getElementById('statusBar').style.display='none';
+  document.getElementById('pasteInput').value='';
+}
+
+// ══════════════════════════════════════
+// URL FETCH (pokepast.es)
+// ══════════════════════════════════════
+async function fetchURL() {
+  const url = document.getElementById('urlInput').value.trim();
+  if(!url) { document.getElementById('urlStatus').innerHTML=`<div class="status-bar error">⚠ Enter a URL first.</div>`; return; }
+
+  document.getElementById('urlStatus').innerHTML=`<div class="status-bar info"><span class="spin"></span> Fetching…</div>`;
+
+  let fetchUrl = url;
+
+  // pokepast.es → use raw endpoint
+  if(url.includes('pokepast.es')) {
+    // https://pokepast.es/abc123 → https://pokepast.es/abc123/raw
+    fetchUrl = url.replace(/\/+$/, '') + '/raw';
+  }
+
+  try {
+    // Try direct fetch first, then CORS proxy
+    let text = '';
+    try {
+      const r = await fetch(fetchUrl);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      text = await r.text();
+    } catch(e) {
+      // Try CORS proxy
+      const proxy = `https://corsproxy.io/?${encodeURIComponent(fetchUrl)}`;
+      const r2 = await fetch(proxy);
+      if(!r2.ok) throw new Error('Proxy failed');
+      text = await r2.text();
+    }
+
+    // Strip HTML if it snuck through
+    text = text.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+
+    document.getElementById('urlStatus').innerHTML=`<div class="status-bar success">✅ Fetched successfully!</div>`;
+    document.getElementById('pasteInput').value = text;
+
+    // Switch to text tab and parse
+    activatePtab('text');
+    parsePaste();
+  } catch(e) {
+    document.getElementById('urlStatus').innerHTML=`<div class="status-bar error">❌ Could not fetch URL. Try copying the text manually instead.</div>`;
+  }
+}
+
+// ══════════════════════════════════════
+// CLIPBOARD
+// ══════════════════════════════════════
+async function pasteFromClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if(!text.trim()) { showToast('Clipboard is empty'); return; }
+    document.getElementById('pasteInput').value = text;
+    showToast('Pasted from clipboard ✅');
+  } catch(e) {
+    showToast('Clipboard access denied — paste manually with Ctrl+V');
+  }
+}
+
+function clearPaste() {
+  document.getElementById('pasteInput').value='';
+  parsedMons=[];
+  document.getElementById('previewSection').style.display='none';
+  document.getElementById('statusBar').style.display='none';
+}
+
+// ══════════════════════════════════════
+// STATUS
+// ══════════════════════════════════════
+function showStatus(type, html) {
+  const el = document.getElementById('statusBar');
+  el.style.display='block';
+  el.innerHTML=`<div class="status-bar ${type}">${html}</div>`;
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let _tt;
+function showToast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'),2800);
+}
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+document.querySelectorAll('.ptab').forEach(t=>{
+  t.addEventListener('click',()=>activatePtab(t.dataset.t));
+});
+function activatePtab(name){
+  document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.ptab-body').forEach(x=>x.classList.remove('on'));
+  document.querySelector(`.ptab[data-t="${name}"]`)?.classList.add('on');
+  document.getElementById('t-'+name)?.classList.add('on');
+}
+
+// ══════════════════════════════════════
+// SAMPLE TEAMS
+// ══════════════════════════════════════
+const SAMPLES = [
+  {
+    name:'Classic Rain Team',
+    desc:'Pelipper + Swampert + 4 sweepers',
+    paste:`Pelipper @ Choice Scarf
+Ability: Drizzle
+EVs: 252 SpA / 4 SpD / 252 Spe
+Modest Nature
+- Hurricane
+- Scald
+- U-turn
+- Roost
+
+Swampert @ Swampertite
+Ability: Torrent
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Waterfall
+- Earthquake
+- Ice Punch
+- Power-Up Punch
+
+Ferrothorn @ Leftovers
+Ability: Iron Barbs
+EVs: 252 HP / 88 Def / 168 SpD
+Relaxed Nature
+IVs: 0 Spe
+- Stealth Rock
+- Leech Seed
+- Power Whip
+- Knock Off
+
+Barraskewda @ Choice Band
+Ability: Swift Swim
+EVs: 252 Atk / 4 Def / 252 Spe
+Jolly Nature
+- Liquidation
+- Close Combat
+- Psychic Fangs
+- Flip Turn
+
+Toxapex @ Black Sludge
+Ability: Regenerator
+EVs: 252 HP / 252 Def / 4 SpD
+Bold Nature
+IVs: 0 Atk
+- Scald
+- Toxic
+- Recover
+- Haze
+
+Kingdra @ Choice Specs
+Ability: Swift Swim
+EVs: 4 HP / 252 SpA / 252 Spe
+Modest Nature
+- Hydro Pump
+- Draco Meteor
+- Hurricane
+- Flash Cannon`
+  },
+  {
+    name:'Trick Room Offense',
+    desc:'Slow powerhouses with Trick Room',
+    paste:`Hatterene @ Psychic Seed
+Ability: Magic Bounce
+EVs: 252 HP / 4 Def / 252 SpA
+Quiet Nature
+IVs: 0 Atk / 0 Spe
+- Trick Room
+- Psychic
+- Mystical Fire
+- Healing Wish
+
+Reuniclus @ Life Orb
+Ability: Magic Guard
+EVs: 192 HP / 64 Def / 252 SpA
+Quiet Nature
+IVs: 0 Atk / 0 Spe
+- Psychic
+- Shadow Ball
+- Focus Blast
+- Trick Room
+
+Conkeldurr @ Flame Orb
+Ability: Guts
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Drain Punch
+- Knock Off
+- Ice Punch
+- Mach Punch
+
+Marowak-Alola @ Thick Club
+Ability: Rock Head
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Flare Blitz
+- Bonemerang
+- Shadow Bone
+- Swords Dance
+
+Dracovish @ Choice Band
+Ability: Strong Jaw
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Fishious Rend
+- Crunch
+- Outrage
+- Ice Fang
+
+Stakataka @ Weakness Policy
+Ability: Beast Boost
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Trick Room
+- Gyro Ball
+- Rock Slide
+- Superpower`
+  },
+  {
+    name:'Sun Sweepers',
+    desc:'Drought-boosted offensive threats',
+    paste:`Torkoal @ Heat Rock
+Ability: Drought
+EVs: 252 HP / 4 SpA / 252 SpD
+Calm Nature
+IVs: 0 Atk
+- Stealth Rock
+- Rapid Spin
+- Lava Plume
+- Yawn
+
+Venusaur @ Life Orb
+Ability: Chlorophyll
+EVs: 4 HP / 252 SpA / 252 Spe
+Modest Nature
+- Solar Beam
+- Sludge Bomb
+- Earth Power
+- Sleep Powder
+
+Volcarona @ Charcoal
+Ability: Flame Body
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+- Fiery Dance
+- Bug Buzz
+- Quiver Dance
+- Roost
+
+Garchomp @ Rocky Helmet
+Ability: Rough Skin
+EVs: 252 HP / 164 Def / 92 Spe
+Impish Nature
+- Stealth Rock
+- Earthquake
+- Dragon Tail
+- Fire Blast
+
+Heatran @ Air Balloon
+Ability: Flash Fire
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Magma Storm
+- Flash Cannon
+- Earth Power
+- Taunt
+
+Zeraora @ Choice Band
+Ability: Volt Absorb
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Plasma Fists
+- Close Combat
+- Knock Off
+- U-turn`
+  },
+];
+
+function loadSamples() {
+  const grid = document.getElementById('sampleGrid');
+  grid.innerHTML = SAMPLES.map((s,i)=>`
+    <div class="sample-item" onclick="loadSample(${i})">
+      <div>
+        <div class="sample-item-name">${s.name}</div>
+        <div class="sample-item-desc">${s.desc}</div>
+      </div>
+      <span class="sample-load">Load →</span>
+    </div>`).join('');
+}
+
+function loadSample(i) {
+  document.getElementById('pasteInput').value = SAMPLES[i].paste;
+  activatePtab('text');
+  parsePaste();
+  showToast(`Loaded: ${SAMPLES[i].name}`);
+}
+
+// ══════════════════════════════════════
+// LISTEN FOR IMPORT FROM INDEX
+// ══════════════════════════════════════
+// (index.html will also read localStorage on load)
+
+// ══════════════════════════════════════
+// KEYBOARD SHORTCUT
+// ══════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey||e.metaKey) && e.key==='Enter') parsePaste();
+});
+
+// ══════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════
+loadSamples();
+</script>
+</body>
+</html>
